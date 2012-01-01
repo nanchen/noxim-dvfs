@@ -5,7 +5,7 @@
 # NOTE FOR NOXIM USERS: before running "make" you just have to modify
 # the following variable to point to your SystemC installation path
 #
-SYSTEMC = /opt/systemc-2.2.0
+SYSTEMC = /home/nan/dev/systemc-2.2.0
 #
 # That's all for you!!!
 
@@ -23,7 +23,7 @@ $(EXE): $(OBJS) $(SYSTEMC)/lib-$(TARGET_ARCH)/libsystemc.a
 	$(CC) $(CFLAGS) $(INCDIR) $(LIBDIR) -o $@ $(OBJS) $(LIBS) 2>&1 | c++filt
 
 .cpp.o:
-	$(CC) $(CFLAGS) $(INCDIR) -c $<
+	$(CC) $(CFLAGS) $(INCDIR) -c -g -fpermissive $<
 
 clean:
 	rm -f $(OBJS) *~ $(EXE) core
