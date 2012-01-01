@@ -18,6 +18,9 @@ int NoximProcessingElement::randInt(int min, int max)
 
 void NoximProcessingElement::rxProcess()
 {
+	if(divider->isDutyCycle()==false)
+		return;
+
     if (reset.read()) {
 	ack_rx.write(0);
 	current_level_rx = 0;
@@ -36,6 +39,9 @@ void NoximProcessingElement::rxProcess()
 
 void NoximProcessingElement::txProcess()
 {
+	if(divider->isDutyCycle()==false)
+		return;
+
     if (reset.read()) {
 	req_tx.write(0);
 	current_level_tx = 0;

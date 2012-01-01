@@ -14,6 +14,7 @@
 #include <systemc.h>
 #include "NoximRouter.h"
 #include "NoximProcessingElement.h"
+#include "NoximDivider.h"
 using namespace std;
 
 SC_MODULE(NoximTile)
@@ -51,15 +52,21 @@ SC_MODULE(NoximTile)
     sc_signal <int> free_slots_neighbor_local;
 
     // Instances
-    NoximRouter *r;		                // Router instance
+    NoximRouter *r;								// Router instance
     NoximProcessingElement *pe;	                // Processing Element instance
+    NoximDivider* divider;
 
     // Constructor
 
     SC_CTOR(NoximTile) {
+    // Divider
+    divider = new NoximDivider("Divider");
+    divider->clock(clock);
+    divider->reset(reset);
 
 	// Router pin assignments
 	r = new NoximRouter("Router");
+	r->divider = divider;
 	r->clock(clock);
 	r->reset(reset);
 	for (int i = 0; i < DIRECTIONS; i++) {
@@ -93,6 +100,7 @@ SC_MODULE(NoximTile)
 
 	// Processing Element pin assignments
 	pe = new NoximProcessingElement("ProcessingElement");
+	pe->divider = divider;
 	pe->clock(clock);
 	pe->reset(reset);
 
@@ -107,6 +115,10 @@ SC_MODULE(NoximTile)
 	pe->free_slots_neighbor(free_slots_neighbor_local);
 
     }
+
+public:
+    void setDivision(unsigned int division);
+    void setOff(bool off);
 
 };
 

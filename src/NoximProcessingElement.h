@@ -15,6 +15,7 @@
 #include <systemc.h>
 #include "NoximMain.h"
 #include "NoximGlobalTrafficTable.h"
+#include "NoximDivider.h"
 using namespace std;
 
 SC_MODULE(NoximProcessingElement)
@@ -33,6 +34,8 @@ SC_MODULE(NoximProcessingElement)
     sc_in < bool > ack_tx;	// The outgoing ack signal associated with the output channel
 
     sc_in < int >free_slots_neighbor;
+
+    NoximDivider* divider;
 
     // Registers
     int local_id;		// Unique identification number

@@ -18,6 +18,7 @@
 #include "NoximGlobalRoutingTable.h"
 #include "NoximLocalRoutingTable.h"
 #include "NoximReservationTable.h"
+#include "NoximDivider.h"
 using namespace std;
 
 extern unsigned int drained_volume;
@@ -44,6 +45,7 @@ SC_MODULE(NoximRouter)
     sc_out < NoximNoP_data > NoP_data_out[DIRECTIONS];
     sc_in < NoximNoP_data > NoP_data_in[DIRECTIONS];
 
+    NoximDivider* divider;
     // Registers
 
     /*

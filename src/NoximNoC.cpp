@@ -27,6 +27,8 @@ void NoximNoC::buildMesh()
 	    char tile_name[20];
 	    sprintf(tile_name, "Tile[%02d][%02d]", i, j);
 	    t[i][j] = new NoximTile(tile_name);
+	    t[i][j]->setDivision(100);
+	    //t[i][j]->setOff(true);
 
 	    // Tell to the router its coordinates
 	    t[i][j]->r->configure(j * NoximGlobalParams::mesh_dim_x + i,

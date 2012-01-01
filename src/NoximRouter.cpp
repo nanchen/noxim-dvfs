@@ -12,6 +12,9 @@
 
 void NoximRouter::rxProcess()
 {
+	if(divider->isDutyCycle()==false)
+		return;
+
     if (reset.read()) {
 	// Clear outputs and indexes of receiving protocol
 	for (int i = 0; i < DIRECTIONS + 1; i++) {
@@ -59,6 +62,9 @@ void NoximRouter::rxProcess()
 
 void NoximRouter::txProcess()
 {
+	if(divider->isDutyCycle()==false)
+		return;
+
     if (reset.read()) {
 	// Clear outputs and indexes of transmitting protocol
 	for (int i = 0; i < DIRECTIONS + 1; i++) {
@@ -169,6 +175,9 @@ NoximNoP_data NoximRouter::getCurrentNoPData() const
 
 void NoximRouter::bufferMonitor()
 {
+	if(divider->isDutyCycle()==false)
+		return;
+
     if (reset.read()) {
 	for (int i = 0; i < DIRECTIONS + 1; i++)
 	    free_slots[i].write(buffer[i].GetMaxBufferSize());
@@ -730,3 +739,4 @@ bool NoximRouter::inCongestion()
 
     return false;
 }
+
