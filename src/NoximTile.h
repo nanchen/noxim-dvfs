@@ -15,6 +15,8 @@
 #include "NoximRouter.h"
 #include "NoximProcessingElement.h"
 #include "NoximDivider.h"
+#include <stdio.h>
+
 using namespace std;
 
 SC_MODULE(NoximTile)
@@ -56,9 +58,32 @@ SC_MODULE(NoximTile)
     NoximProcessingElement *pe;	                // Processing Element instance
     NoximDivider* divider;
 
-    // Constructor
+    //-----------------id, coord, toString, neighbor------------------
+    // neighbor tile
+    NoximTile* nTile[DIRECTIONS];
+    void setNTile(int dir, NoximTile* neighbor);
 
+	// coord
+    NoximCoord coord;
+	NoximCoord getCoord() const{
+		return coord;
+	}
+	void setCoord(int x, int y);
+
+	// id
+	int id;
+	void setId(int aId);
+	int getId() const;
+
+	char* toString() const;
+	//-----------------id, coord, toString, neighbor------------------
+
+    // Constructor
     SC_CTOR(NoximTile) {
+    // init neighbor tiles
+    for (int i = 0; i < DIRECTIONS; i++)
+    	nTile[i] = NULL;
+
     // Divider
     divider = new NoximDivider("Divider");
     divider->clock(clock);

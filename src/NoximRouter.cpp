@@ -740,3 +740,21 @@ bool NoximRouter::inCongestion()
     return false;
 }
 
+//----------------ID, coord and toString------------------------------------
+void NoximRouter::setCoord(int x, int y) {
+	if (dvfs)
+		dvfs->setCoord(x, y);
+}
+
+void NoximRouter::setId(int aId){
+	if(dvfs)
+		dvfs->setId(aId);
+}
+
+char* NoximRouter::toString() const {
+	char* ret = (char*) malloc(50 * sizeof(char));
+	sprintf(ret, " Router [%3d] at %s", local_id, dvfs->getCoord().toString());
+	return ret;
+}
+//----------------ID, coord and toString------END---------------------------
+

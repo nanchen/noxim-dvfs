@@ -27,8 +27,20 @@ void NoximNoC::buildMesh()
 	    char tile_name[20];
 	    sprintf(tile_name, "Tile[%02d][%02d]", i, j);
 	    t[i][j] = new NoximTile(tile_name);
-	    t[i][j]->setDivision(100);
+
+	    //------------- coord & id-----
+	    t[i][j]->setCoord(i,j);
+	    const int id = xy2Id(i,j);
+//	    cout << "[" << i << ", " << j << "] id = " << id << endl;
+	    t[i][j]->setId(id);
+
+	    //-------------DVFS------------
+	    //t[i][j]->setDivision(100);
 	    //t[i][j]->setOff(true);
+	    NoximDVFSUnit::setDVFS(id, t[i][j]->r->dvfs);
+//	    cout << t[i][j]->r->toString() << "initilized" << endl;
+//	    cout << t[i][j]->r->dvfs->toString() << " initilized" << endl;
+
 
 	    // Tell to the router its coordinates
 	    t[i][j]->r->configure(j * NoximGlobalParams::mesh_dim_x + i,
@@ -151,6 +163,31 @@ void NoximNoC::buildMesh()
 	t[0][j]->r->reservation_table.invalidate(DIRECTION_WEST);
 	t[NoximGlobalParams::mesh_dim_x - 1][j]->r->reservation_table.invalidate(DIRECTION_EAST);
     }
+
+    // neighbors
+	for (int y = 0; y < NoximGlobalParams::mesh_dim_y; y++)
+		for (int x = 0; x < NoximGlobalParams::mesh_dim_x; x++) {
+			NoximTile* tile = t[x][y];
+			NoximDVFSUnit* dvfs = tile->r->dvfs;
+			if (x > 0) {
+				tile->setNTile(DIRECTION_WEST, t[x - 1][y]);
+				// 			tile->nTile[DIRECTION_WEST] = t[x-1][y];
+			}
+			if (x < NoximGlobalParams::mesh_dim_x - 1) {
+				tile->setNTile(DIRECTION_EAST, t[x + 1][y]);
+				// 			tile->nTile[DIRECTION_EAST] = t[x+1][y];
+			}
+			if (y > 0) {
+				tile->setNTile(DIRECTION_NORTH, t[x][y - 1]);
+				// 			tile->nTile[DIRECTION_NORTH] = t[x][y-1];
+			}
+			if (y < NoximGlobalParams::mesh_dim_y - 1) {
+				tile->setNTile(DIRECTION_SOUTH, t[x][y + 1]);
+				// 			tile->nTile[DIRECTION_SOUTH] = t[x][y+1];
+			}
+		}
+
+	NoximDVFSUnit::initQTablesForAll();
 }
 
 NoximTile *NoximNoC::searchNode(const int id) const

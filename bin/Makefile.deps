@@ -14,6 +14,7 @@
 ../src/NoximRouter.o: ../src/NoximLocalRoutingTable.h
 ../src/NoximRouter.o: ../src/NoximReservationTable.h
 ../src/NoximRouter.o: ../src/NoximDivider.h
+../src/NoximRouter.o: ../src/NoximDVFSUnit.h
 ../src/NoximProcessingElement.o: ../src/NoximProcessingElement.h
 ../src/NoximProcessingElement.o: ../src/NoximMain.h
 ../src/NoximProcessingElement.o: ../src/NoximGlobalTrafficTable.h

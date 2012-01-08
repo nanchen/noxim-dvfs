@@ -14,6 +14,9 @@
 #include <cassert>
 #include <systemc.h>
 #include <vector>
+#include <stdio.h>
+#include <math.h>
+
 using namespace std;
 
 // Define the directions as numbers
@@ -123,8 +126,14 @@ class NoximCoord {
     int y;			// Y coordinate
 
     inline bool operator ==(const NoximCoord & coord) const {
-	return (coord.x == x && coord.y == y);
-}};
+    	return (coord.x == x && coord.y == y);
+    }
+	char* toString() const {
+		char* ret = (char*) malloc(20 * sizeof(char));
+		sprintf(ret, "(%d,%d)", x, y);
+		return ret;
+	}
+};
 
 // NoximFlitType -- Flit type enumeration
 enum NoximFlitType {
@@ -328,13 +337,52 @@ inline NoximCoord id2Coord(int id)
     return coord;
 }
 
-inline int coord2Id(const NoximCoord & coord)
+inline int xy2Id(int x, int y)
 {
-    int id = (coord.y * NoximGlobalParams::mesh_dim_x) + coord.x;
+    int id = (y * NoximGlobalParams::mesh_dim_x) + x;
 
     assert(id < NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y);
 
     return id;
+}
+
+inline int coord2Id(const NoximCoord & coord)
+{
+	return xy2Id(coord.x, coord.y);
+}
+
+inline NoximCoord getMaxCoord(){
+	   NoximCoord coord;
+	   coord.x = NoximGlobalParams::mesh_dim_x - 1;
+	   coord.y = NoximGlobalParams::mesh_dim_y - 1;
+	   return coord;
+}
+
+inline int getMaxId(){
+	return coord2Id(getMaxCoord());
+}
+
+inline char* getDirStr(const int dir) {
+	char* ret = (char*) malloc(5 * sizeof(char));
+	switch (dir) {
+	case DIRECTION_NORTH:
+		ret = "north";
+		break;
+	case DIRECTION_SOUTH:
+		ret = "south";
+		break;
+	case DIRECTION_WEST:
+		ret = "west";
+		break;
+	case DIRECTION_EAST:
+		ret = "east";
+		break;
+	}
+	return ret;
+}
+
+inline int hammingDistance(const NoximCoord& c1, const NoximCoord& c2){
+	return abs(c1.x-c2.x)+abs(c1.y-c2.y);
 }
 
 #endif

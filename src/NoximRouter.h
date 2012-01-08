@@ -19,6 +19,7 @@
 #include "NoximLocalRoutingTable.h"
 #include "NoximReservationTable.h"
 #include "NoximDivider.h"
+#include "NoximDVFSUnit.h"
 using namespace std;
 
 extern unsigned int drained_volume;
@@ -45,9 +46,7 @@ SC_MODULE(NoximRouter)
     sc_out < NoximNoP_data > NoP_data_out[DIRECTIONS];
     sc_in < NoximNoP_data > NoP_data_in[DIRECTIONS];
 
-    NoximDivider* divider;
     // Registers
-
     /*
        NoximCoord position;                     // Router position inside the mesh
      */
@@ -63,8 +62,20 @@ SC_MODULE(NoximRouter)
     int start_from_port;	                // Port from which to start the reservation cycle
     unsigned long routed_flits;
 
-    // Functions
 
+    NoximDivider* divider;
+    NoximDVFSUnit* dvfs;
+    //-----------------id, coord, toString ------------------
+	// coord
+	void setCoord(int x, int y);
+
+	// id
+	void setId(int aId);
+
+	char* toString() const;
+	//-----------------id, coord, toString ------------------
+
+    // Functions
     void rxProcess();		// The receiving process
     void txProcess();		// The transmitting process
     void bufferMonitor();
@@ -79,6 +90,7 @@ SC_MODULE(NoximRouter)
     // Constructor
 
     SC_CTOR(NoximRouter) {
+    dvfs = new NoximDVFSUnit("DVFSUnit");
 	SC_METHOD(rxProcess);
 	sensitive << reset;
 	sensitive << clock.pos();
