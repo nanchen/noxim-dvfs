@@ -13,8 +13,16 @@
 using namespace std;
 
 SC_MODULE(NoximDVFSUnit) {
-	//	sc_in_clk clock;
-	//	sc_in<bool> reset;
+	const static int Q_NOTIFY_INIT = 0;
+	const static int Q_NOTIFY_INFINITY = 1;
+	const static int Q_NOTIFY_FREQ_SCALING = 2;
+
+	// ---------divider-----------------
+	sc_in_clk clock;
+	sc_in<bool> reset;
+	bool off;
+	unsigned int division;
+	void incrementDivisionCounter();
 
 	//-----------------id, coord, toString, neighbor------------------
 	// static array
@@ -45,20 +53,35 @@ SC_MODULE(NoximDVFSUnit) {
 	//-----------------id, coord, toString, neighbor------------------
 
 	SC_CTOR(NoximDVFSUnit) {
+		// divider functions
+		off = false;
+		division = 1;
+		SC_METHOD( incrementDivisionCounter);
+		sensitive << reset;
+		sensitive << clock.neg();
+
 		// init neighbor units
 		for (int i = 0; i < DIRECTIONS; i++)
-			nUnit[i] = NULL;
-		//		SC_METHOD( incrementDivisionCounter);
-		//		sensitive << reset;
-		//		sensitive << clock.neg();
+		nUnit[i] = NULL;
 	}
 
 public:
+	void notifyAllNeighbors(int event);
+	void setQTableForANeighbor(int nDir, float qValue);
+	void initQTableForANeighbor(int nDir);
 	void initQTable();
+
 	static void initQTablesForAll();
 	static int distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2);
+
+	// divider
+    void setDivision(unsigned int division);
+    void setOff(bool off);
+	bool isDutyCycle();
+
 private:
 	float qTable[DIRECTIONS][MAX_STATIC_DIM * MAX_STATIC_DIM];
+	unsigned int divisionCount;
 };
 #endif
 

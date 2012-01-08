@@ -15,7 +15,8 @@
 #include <systemc.h>
 #include "NoximMain.h"
 #include "NoximGlobalTrafficTable.h"
-#include "NoximDivider.h"
+#include "NoximDVFSUnit.h"
+
 using namespace std;
 
 SC_MODULE(NoximProcessingElement)
@@ -35,7 +36,7 @@ SC_MODULE(NoximProcessingElement)
 
     sc_in < int >free_slots_neighbor;
 
-    NoximDivider* divider;
+    NoximDVFSUnit* dvfs;
 
     // Registers
     int local_id;		// Unique identification number

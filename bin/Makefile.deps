@@ -13,15 +13,15 @@
 ../src/NoximRouter.o: ../src/NoximPower.h ../src/NoximGlobalRoutingTable.h
 ../src/NoximRouter.o: ../src/NoximLocalRoutingTable.h
 ../src/NoximRouter.o: ../src/NoximReservationTable.h
-../src/NoximRouter.o: ../src/NoximDivider.h
 ../src/NoximRouter.o: ../src/NoximDVFSUnit.h
 ../src/NoximProcessingElement.o: ../src/NoximProcessingElement.h
 ../src/NoximProcessingElement.o: ../src/NoximMain.h
 ../src/NoximProcessingElement.o: ../src/NoximGlobalTrafficTable.h
-../src/NoximProcessingElement.o: ../src/NoximDivider.h
+../src/NoximProcessingElement.o: ../src/NoximDVFSUnit.h
 ../src/NoximBuffer.o: ../src/NoximBuffer.h ../src/NoximMain.h
 ../src/NoximStats.o: ../src/NoximStats.h ../src/NoximMain.h
 ../src/NoximStats.o: ../src/NoximPower.h
+../src/NoximTile.o: ../src/NoximDVFSUnit.h
 ../src/NoximGlobalStats.o: ../src/NoximGlobalStats.h ../src/NoximNoC.h
 ../src/NoximGlobalStats.o: ../src/NoximTile.h ../src/NoximRouter.h
 ../src/NoximGlobalStats.o: ../src/NoximMain.h ../src/NoximBuffer.h

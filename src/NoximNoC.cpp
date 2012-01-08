@@ -35,9 +35,7 @@ void NoximNoC::buildMesh()
 	    t[i][j]->setId(id);
 
 	    //-------------DVFS------------
-	    //t[i][j]->setDivision(100);
-	    //t[i][j]->setOff(true);
-	    NoximDVFSUnit::setDVFS(id, t[i][j]->r->dvfs);
+	    NoximDVFSUnit::setDVFS(id, t[i][j]->dvfs);
 //	    cout << t[i][j]->r->toString() << "initilized" << endl;
 //	    cout << t[i][j]->r->dvfs->toString() << " initilized" << endl;
 
@@ -188,6 +186,14 @@ void NoximNoC::buildMesh()
 		}
 
 	NoximDVFSUnit::initQTablesForAll();
+    NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
+    dvfs2->setOff(true);
+	for(int i = 0; i<=getMaxId();i++){
+    	NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
+ //   	dvfs->setDivision(100);
+ //   	dvfs->setOff(true);
+    }
+
 }
 
 NoximTile *NoximNoC::searchNode(const int id) const

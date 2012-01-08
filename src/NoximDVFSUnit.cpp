@@ -9,23 +9,31 @@ int NoximDVFSUnit::distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2) {
 	return hammingDistance(dvfs1->getCoord(), dvfs2->getCoord());
 }
 
+void NoximDVFSUnit::initQTableForANeighbor(int nDir) {
+	// max id
+	const int MAX_ID = getMaxId();
+	//	cout << "MAX_ID = " << MAX_ID << endl;
+	// neighbor exists
+	if (nUnit[nDir]) {
+		NoximDVFSUnit* y = nUnit[nDir];
+
+		for (int i = 0; i <= MAX_ID; i++) {
+			//TODO should avoid the case when getId() == y.id?
+			if (getId() == i)
+				continue;
+			NoximDVFSUnit* d = NoximDVFSUnit::getDVFS(i);
+			int distance = 1 + NoximDVFSUnit::distance(y, d);
+			qTable[nDir][i] = (float) distance;
+
+		}
+	}
+}
+
 void NoximDVFSUnit::initQTable() {
 	cout << "init q table for " << toFullString() << endl;
-	const int MAX_ID = getMaxId();
 
 	for (int dir = 0; dir < DIRECTIONS; dir++) {
-		// neighbor exists
-		if (nUnit[dir]) {
-			NoximDVFSUnit* y = nUnit[dir];
-
-			for (int i = 0; i <= MAX_ID; i++) {
-				if (getId() == i)
-					continue;
-				NoximDVFSUnit* d = NoximDVFSUnit::getDVFS(i);
-				int distance = 1 + NoximDVFSUnit::distance(y, d);
-				qTable[dir][i] = (float) distance;
-			}
-		}
+		initQTableForANeighbor(dir);
 	}
 	cout << qTableString() << endl;
 }
@@ -35,6 +43,45 @@ void NoximDVFSUnit::initQTablesForAll() {
 	for (int i = 0; i <= MAX_ID; i++) {
 		NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
 		dvfs->initQTable();
+	}
+}
+
+void NoximDVFSUnit::setQTableForANeighbor(int nDir, float qValue) {
+	const int MAX_ID = getMaxId();
+	// neighbor exists
+	if (nUnit[nDir]) {
+		NoximDVFSUnit* y = nUnit[nDir];
+
+		for (int i = 0; i <= MAX_ID; i++) {
+			//TODO should avoid the case when getId() == y.id?
+			if (getId() == i)
+				continue;
+			qTable[nDir][i] = qValue;
+
+		}
+	}
+}
+
+void NoximDVFSUnit::notifyAllNeighbors(int event) {
+	cout << toString() << ": notify all neighbors, event = " << event << endl;
+	for (int dir; dir < DIRECTIONS; dir++) {
+		NoximDVFSUnit* n = nUnit[dir];
+		if (n) {
+			switch (event) {
+			case Q_NOTIFY_INFINITY:
+				n-> setQTableForANeighbor(getOppositDir(dir), -1.0);
+				break;
+			case Q_NOTIFY_INIT:
+				n -> initQTableForANeighbor(getOppositDir(dir));
+				break;
+			case Q_NOTIFY_FREQ_SCALING:
+
+				break;
+			default:
+				assert(false);
+			}
+			cout << n->qTableString() << endl;
+		}
 	}
 }
 
@@ -101,9 +148,9 @@ char* NoximDVFSUnit::toFullString() const {
 
 char* NoximDVFSUnit::qTableString() const {
 	char* ret = (char*) malloc(100000 * sizeof(char));
-	sprintf(
-			ret,
-			"--------------------------------------------------q table--------------------------------------------------\n");
+	sprintf(ret, "-----------------%s", toString());
+	sprintf(ret, "%s%s", ret,
+			"------------------q table--------------------------------------------------\n");
 	for (int dir = 0; dir < DIRECTIONS; dir++) {
 		if (nUnit[dir] == NULL)
 			continue;
@@ -125,3 +172,38 @@ char* NoximDVFSUnit::qTableString() const {
 	return ret;
 }
 //----------------ID, coord and toString------END------------------------
+
+// --------------------- divider----------------------------------------
+bool NoximDVFSUnit::isDutyCycle() {
+	if (off)
+		return false;
+	if (division == 1)
+		return true;
+	if (divisionCount % division == 0) {
+		if (divisionCount != 0)
+			cout << "@" << sc_time_stamp()
+					<< " :: duty cycle! divisionCount = " << divisionCount
+					<< ", division = " << division << endl;
+		return true;
+	}
+	return false;
+}
+
+void NoximDVFSUnit::incrementDivisionCounter() {
+	//	cout << "NoximDVFSUnit.increment division counter, divisionCount = " << divisionCount << endl;
+	if (reset.read())
+		divisionCount = 0;
+	else
+		divisionCount++;
+}
+
+void NoximDVFSUnit::setDivision(unsigned int division) {
+	this->division = division;
+}
+
+void NoximDVFSUnit::setOff(bool off) {
+	this->off = off;
+	this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
+
+}
+// ---------END--------- divider----------------------------------------

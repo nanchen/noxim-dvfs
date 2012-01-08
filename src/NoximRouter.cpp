@@ -12,7 +12,7 @@
 
 void NoximRouter::rxProcess()
 {
-	if(divider->isDutyCycle()==false)
+	if(dvfs->isDutyCycle()==false)
 		return;
 
     if (reset.read()) {
@@ -62,7 +62,7 @@ void NoximRouter::rxProcess()
 
 void NoximRouter::txProcess()
 {
-	if(divider->isDutyCycle()==false)
+	if(dvfs->isDutyCycle()==false)
 		return;
 
     if (reset.read()) {
@@ -175,7 +175,7 @@ NoximNoP_data NoximRouter::getCurrentNoPData() const
 
 void NoximRouter::bufferMonitor()
 {
-	if(divider->isDutyCycle()==false)
+	if(dvfs->isDutyCycle()==false)
 		return;
 
     if (reset.read()) {

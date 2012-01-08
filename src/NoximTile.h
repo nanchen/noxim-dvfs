@@ -14,7 +14,7 @@
 #include <systemc.h>
 #include "NoximRouter.h"
 #include "NoximProcessingElement.h"
-#include "NoximDivider.h"
+#include "NoximDVFSUnit.h"
 #include <stdio.h>
 
 using namespace std;
@@ -56,7 +56,7 @@ SC_MODULE(NoximTile)
     // Instances
     NoximRouter *r;								// Router instance
     NoximProcessingElement *pe;	                // Processing Element instance
-    NoximDivider* divider;
+    NoximDVFSUnit* dvfs;
 
     //-----------------id, coord, toString, neighbor------------------
     // neighbor tile
@@ -85,13 +85,13 @@ SC_MODULE(NoximTile)
     	nTile[i] = NULL;
 
     // Divider
-    divider = new NoximDivider("Divider");
-    divider->clock(clock);
-    divider->reset(reset);
+    dvfs = new NoximDVFSUnit("DVFSUnit");
+    dvfs->clock(clock);
+    dvfs->reset(reset);
 
 	// Router pin assignments
 	r = new NoximRouter("Router");
-	r->divider = divider;
+	r->dvfs = dvfs;
 	r->clock(clock);
 	r->reset(reset);
 	for (int i = 0; i < DIRECTIONS; i++) {
@@ -125,7 +125,7 @@ SC_MODULE(NoximTile)
 
 	// Processing Element pin assignments
 	pe = new NoximProcessingElement("ProcessingElement");
-	pe->divider = divider;
+	pe->dvfs = dvfs;
 	pe->clock(clock);
 	pe->reset(reset);
 
@@ -141,9 +141,9 @@ SC_MODULE(NoximTile)
 
     }
 
-public:
-    void setDivision(unsigned int division);
-    void setOff(bool off);
+//public:
+//    void setDivision(unsigned int division);
+//    void setOff(bool off);
 
 };
 

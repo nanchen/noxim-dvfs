@@ -18,7 +18,6 @@
 #include "NoximGlobalRoutingTable.h"
 #include "NoximLocalRoutingTable.h"
 #include "NoximReservationTable.h"
-#include "NoximDivider.h"
 #include "NoximDVFSUnit.h"
 using namespace std;
 
@@ -62,8 +61,6 @@ SC_MODULE(NoximRouter)
     int start_from_port;	                // Port from which to start the reservation cycle
     unsigned long routed_flits;
 
-
-    NoximDivider* divider;
     NoximDVFSUnit* dvfs;
     //-----------------id, coord, toString ------------------
 	// coord
@@ -90,7 +87,6 @@ SC_MODULE(NoximRouter)
     // Constructor
 
     SC_CTOR(NoximRouter) {
-    dvfs = new NoximDVFSUnit("DVFSUnit");
 	SC_METHOD(rxProcess);
 	sensitive << reset;
 	sensitive << clock.pos();

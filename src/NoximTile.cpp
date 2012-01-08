@@ -6,21 +6,21 @@
  */
 #include "NoximTile.h"
 
-//----------------Frequency division & power gating------------------------
-void NoximTile::setDivision(unsigned int division) {
-	divider->division = division;
-}
-
-void NoximTile::setOff(bool off) {
-	divider->off = off;
-}
-//-----END--------Frequency division & power gating------------------------
+////----------------Frequency division & power gating------------------------
+//void NoximTile::setDivision(unsigned int division) {
+//	dvfs->setDivision(division);
+//}
+//
+//void NoximTile::setOff(bool off) {
+//	dvfs->setOff(off);
+//}
+////-----END--------Frequency division & power gating------------------------
 
 
 //----------------ID, coord and toString------------------------------------
 void NoximTile::setNTile(int dir, NoximTile* neighbor){
 	nTile[dir] = neighbor;
-	r->dvfs->setNUnit(dir,neighbor->r->dvfs);
+	dvfs->setNUnit(dir,neighbor->dvfs);
 }
 
 void NoximTile::setCoord(int x, int y) {

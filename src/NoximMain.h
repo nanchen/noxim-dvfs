@@ -381,6 +381,20 @@ inline char* getDirStr(const int dir) {
 	return ret;
 }
 
+inline int getOppositDir(const int dir) {
+	switch (dir) {
+	case DIRECTION_NORTH:
+		return DIRECTION_SOUTH;
+	case DIRECTION_SOUTH:
+		return DIRECTION_NORTH;
+	case DIRECTION_WEST:
+		return DIRECTION_EAST;
+	case DIRECTION_EAST:
+		return DIRECTION_WEST;
+	}
+	assert(false);
+}
+
 inline int hammingDistance(const NoximCoord& c1, const NoximCoord& c2){
 	return abs(c1.x-c2.x)+abs(c1.y-c2.y);
 }

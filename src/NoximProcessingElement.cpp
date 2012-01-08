@@ -18,7 +18,7 @@ int NoximProcessingElement::randInt(int min, int max)
 
 void NoximProcessingElement::rxProcess()
 {
-	if(divider->isDutyCycle()==false)
+	if(dvfs->isDutyCycle()==false)
 		return;
 
     if (reset.read()) {
@@ -39,7 +39,7 @@ void NoximProcessingElement::rxProcess()
 
 void NoximProcessingElement::txProcess()
 {
-	if(divider->isDutyCycle()==false)
+	if(dvfs->isDutyCycle()==false)
 		return;
 
     if (reset.read()) {
