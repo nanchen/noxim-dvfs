@@ -169,25 +169,22 @@ void NoximNoC::buildMesh()
 			NoximDVFSUnit* dvfs = tile->r->dvfs;
 			if (x > 0) {
 				tile->setNTile(DIRECTION_WEST, t[x - 1][y]);
-				// 			tile->nTile[DIRECTION_WEST] = t[x-1][y];
 			}
 			if (x < NoximGlobalParams::mesh_dim_x - 1) {
 				tile->setNTile(DIRECTION_EAST, t[x + 1][y]);
-				// 			tile->nTile[DIRECTION_EAST] = t[x+1][y];
 			}
 			if (y > 0) {
 				tile->setNTile(DIRECTION_NORTH, t[x][y - 1]);
-				// 			tile->nTile[DIRECTION_NORTH] = t[x][y-1];
 			}
 			if (y < NoximGlobalParams::mesh_dim_y - 1) {
 				tile->setNTile(DIRECTION_SOUTH, t[x][y + 1]);
-				// 			tile->nTile[DIRECTION_SOUTH] = t[x][y+1];
 			}
 		}
 
 	NoximDVFSUnit::initQTablesForAll();
     NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
-    dvfs2->setOff(true);
+    dvfs2->setDivision(100);
+//    dvfs2->setOff(true);
 	for(int i = 0; i<=getMaxId();i++){
     	NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
  //   	dvfs->setDivision(100);

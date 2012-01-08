@@ -22,6 +22,7 @@ SC_MODULE(NoximDVFSUnit) {
 	sc_in<bool> reset;
 	bool off;
 	unsigned int division;
+	unsigned int preDivision;
 	void incrementDivisionCounter();
 
 	//-----------------id, coord, toString, neighbor------------------
@@ -56,6 +57,7 @@ SC_MODULE(NoximDVFSUnit) {
 		// divider functions
 		off = false;
 		division = 1;
+		preDivision = 1;
 		SC_METHOD( incrementDivisionCounter);
 		sensitive << reset;
 		sensitive << clock.neg();
@@ -63,11 +65,15 @@ SC_MODULE(NoximDVFSUnit) {
 		// init neighbor units
 		for (int i = 0; i < DIRECTIONS; i++)
 		nUnit[i] = NULL;
+
+		queueTime = 1;
 	}
 
 public:
 	void notifyAllNeighbors(int event);
-	void setQTableForANeighbor(int nDir, float qValue);
+	void setQTableForANeighbor(int nDir, double qValue);
+	void setQTableForANeighborOnFreqScaling(int nDir, double queueTimeY,
+			unsigned int newDivision, unsigned int prevDivision);
 	void initQTableForANeighbor(int nDir);
 	void initQTable();
 
@@ -75,13 +81,15 @@ public:
 	static int distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2);
 
 	// divider
-    void setDivision(unsigned int division);
-    void setOff(bool off);
+	void setDivision(unsigned int division);
+	void setOff(bool off);
 	bool isDutyCycle();
+	void setQueueTime(double qTime);
 
 private:
-	float qTable[DIRECTIONS][MAX_STATIC_DIM * MAX_STATIC_DIM];
+	double qTable[DIRECTIONS][MAX_STATIC_DIM * MAX_STATIC_DIM];
 	unsigned int divisionCount;
+	double queueTime;
 };
 #endif
 

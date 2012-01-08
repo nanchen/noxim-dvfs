@@ -61,7 +61,10 @@ SC_MODULE(NoximRouter)
     int start_from_port;	                // Port from which to start the reservation cycle
     unsigned long routed_flits;
 
+    // dvfs
     NoximDVFSUnit* dvfs;
+    double flitReceivedTime;
+
     //-----------------id, coord, toString ------------------
 	// coord
 	void setCoord(int x, int y);
@@ -146,7 +149,6 @@ SC_MODULE(NoximRouter)
     bool inCongestion();
 
   public:
-
     unsigned int local_drained;
 
 };

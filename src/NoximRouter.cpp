@@ -47,6 +47,7 @@ void NoximRouter::rxProcess()
 		}
 		// Store the incoming flit in the circular buffer
 		buffer[i].Push(received_flit);
+		flitReceivedTime = sc_time_stamp().to_double() / 1000;
 
 		// Negate the old value for Alternating Bit Protocol (ABP)
 		current_level_rx[i] = 1 - current_level_rx[i];
@@ -108,6 +109,8 @@ void NoximRouter::txProcess()
 	for (int i = 0; i < DIRECTIONS + 1; i++) {
 	    if (!buffer[i].IsEmpty()) {
 		NoximFlit flit = buffer[i].Front();
+		double qTime = sc_time_stamp().to_double() / 1000 - flitReceivedTime;
+		dvfs->setQueueTime(qTime);
 
 		int o = reservation_table.getOutputPort(i);
 		if (o != NOT_RESERVED) {

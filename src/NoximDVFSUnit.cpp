@@ -23,7 +23,7 @@ void NoximDVFSUnit::initQTableForANeighbor(int nDir) {
 				continue;
 			NoximDVFSUnit* d = NoximDVFSUnit::getDVFS(i);
 			int distance = 1 + NoximDVFSUnit::distance(y, d);
-			qTable[nDir][i] = (float) distance;
+			qTable[nDir][i] = (double) distance;
 
 		}
 	}
@@ -46,7 +46,7 @@ void NoximDVFSUnit::initQTablesForAll() {
 	}
 }
 
-void NoximDVFSUnit::setQTableForANeighbor(int nDir, float qValue) {
+void NoximDVFSUnit::setQTableForANeighbor(int nDir, double qValue) {
 	const int MAX_ID = getMaxId();
 	// neighbor exists
 	if (nUnit[nDir]) {
@@ -62,11 +62,31 @@ void NoximDVFSUnit::setQTableForANeighbor(int nDir, float qValue) {
 	}
 }
 
+void NoximDVFSUnit::setQTableForANeighborOnFreqScaling(int nDir,
+		double queueTimeY, unsigned int newDivision, unsigned int prevDivision) {
+	const int MAX_ID = getMaxId();
+	// neighbor exists
+	if (nUnit[nDir]) {
+		NoximDVFSUnit* y = nUnit[nDir];
+		for (int i = 0; i <= MAX_ID; i++) {
+			//TODO should avoid the case when getId() == y.id?
+			if (getId() == i)
+				continue;
+			double preValue = qTable[nDir][i];
+			double qValue = preValue + queueTimeY
+					* (newDivision - prevDivision);
+			qTable[nDir][i] = qValue;
+		}
+	}
+}
+
 void NoximDVFSUnit::notifyAllNeighbors(int event) {
 	cout << toString() << ": notify all neighbors, event = " << event << endl;
 	for (int dir; dir < DIRECTIONS; dir++) {
 		NoximDVFSUnit* n = nUnit[dir];
 		if (n) {
+			cout << n->qTableString()
+					<< "\n \t\t\t\t\t|\n\t\t\t\t\t|\n\t\t\t\t\tV\n" << endl;
 			switch (event) {
 			case Q_NOTIFY_INFINITY:
 				n-> setQTableForANeighbor(getOppositDir(dir), -1.0);
@@ -75,7 +95,8 @@ void NoximDVFSUnit::notifyAllNeighbors(int event) {
 				n -> initQTableForANeighbor(getOppositDir(dir));
 				break;
 			case Q_NOTIFY_FREQ_SCALING:
-
+				n-> setQTableForANeighborOnFreqScaling(getOppositDir(dir),
+						queueTime, division, preDivision);
 				break;
 			default:
 				assert(false);
@@ -83,6 +104,11 @@ void NoximDVFSUnit::notifyAllNeighbors(int event) {
 			cout << n->qTableString() << endl;
 		}
 	}
+}
+
+void NoximDVFSUnit::setQueueTime(double qTime) {
+	this->queueTime = qTime;
+	//	cout << "queueTime = " << this->queueTime << endl;
 }
 
 // ---------------------DVFS unit array--------------------------------
@@ -198,12 +224,21 @@ void NoximDVFSUnit::incrementDivisionCounter() {
 }
 
 void NoximDVFSUnit::setDivision(unsigned int division) {
+	this->preDivision = this->division;
 	this->division = division;
+	this->notifyAllNeighbors(Q_NOTIFY_FREQ_SCALING);
 }
 
 void NoximDVFSUnit::setOff(bool off) {
-	this->off = off;
-	this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
+	//TODO should power resuming reset division to "1" ?
+	// take effect only when switching
+	if (this->off == false && off == true) {
+		this->off = off;
+		this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
+	} else if (this->off == true && off == false) {
+		this->off = off;
+		this->notifyAllNeighbors(Q_NOTIFY_INIT);
+	}
 
 }
 // ---------END--------- divider----------------------------------------
