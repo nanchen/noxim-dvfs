@@ -18,14 +18,15 @@ int compareValues(double val1, double val2) {
 int NoximDVFSUnit::getDirWithMinQValue(int dstId) {
 	double min = qTable[0][dstId];
 	int ret = 0;
+	// search for min value
 	for (int dir = 0; dir < DIRECTIONS; dir++) {
 		double qValue = qTable[dir][dstId];
-		if(compareValues(qValue, min)<0){
+		if (compareValues(qValue, min) < 0) {
 			min = qValue;
 			ret = dir;
 		}
 	}
-	return dir;
+	return ret;
 }
 
 int NoximDVFSUnit::distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2) {
@@ -72,8 +73,6 @@ void NoximDVFSUnit::setQTableForANeighbor(int nDir, double qValue) {
 	const int MAX_ID = getMaxId();
 	// neighbor exists
 	if (nUnit[nDir]) {
-		NoximDVFSUnit* y = nUnit[nDir];
-
 		for (int i = 0; i <= MAX_ID; i++) {
 			//TODO should avoid the case when getId() == y.id?
 			if (getId() == i)
@@ -89,7 +88,6 @@ void NoximDVFSUnit::setQTableForANeighborOnFreqScaling(int nDir,
 	const int MAX_ID = getMaxId();
 	// neighbor exists
 	if (nUnit[nDir]) {
-		NoximDVFSUnit* y = nUnit[nDir];
 		for (int i = 0; i <= MAX_ID; i++) {
 			//TODO should avoid the case when getId() == y.id?
 			if (getId() == i)
@@ -125,6 +123,40 @@ void NoximDVFSUnit::notifyAllNeighbors(int event) {
 			}
 			cout << n->qTableString() << endl;
 		}
+	}
+}
+
+void NoximDVFSUnit::notifyNeighborWithRegularFlitDelivery(int neighborDir,
+		int dstId) {
+	//Q value through neighbor with minimal q value: ty = Qy(d, minQy(d))
+	int dirOfMinQy = getDirWithMinQValue(dstId);
+	double ty = qTable[dirOfMinQy][dstId];
+	NoximDVFSUnit* n = nUnit[neighborDir];
+	if (n) {
+		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+			cout << toString() << ": notify neighbor: " << neighborDir
+					<< " for regular delivery" << endl;
+		n->setQTableForRegularFlitDelivery(getOppositDir(neighborDir), dstId,
+				ty);
+	}
+}
+
+void NoximDVFSUnit::setQTableForRegularFlitDelivery(int nDir, int dstId,
+		double ty) {
+	// neighbor exists
+	if (nUnit[nDir]) {
+		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+			cout << qTableString()
+					<< "\n \t\t\t\t\t|\n\t\t\t\t\t|\n\t\t\t\t\tV\n" << endl;
+		// Q'x(d,y) = Qx(d,y) + deltaQx(d,y)
+		// deltaQx(d,y) = eta * (qx + 1 + ty - Qx(d,y))
+		double currentQValue = qTable[nDir][dstId];
+		const double ETA = 0.5;
+		double delta = ETA * (queueTime + 1 + ty + currentQValue);
+		double newQValue = currentQValue + delta;
+		qTable[nDir][dstId] = newQValue;
+		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+			cout << qTableString() << endl;
 	}
 }
 

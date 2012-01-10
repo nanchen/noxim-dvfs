@@ -70,11 +70,13 @@ SC_MODULE(NoximDVFSUnit) {
 	}
 
 public:
-	int getDirWithMinQValue(int id);
+	int getDirWithMinQValue(int dstId);
 	void notifyAllNeighbors(int event);
+	void notifyNeighborWithRegularFlitDelivery(int neighborDir, int dstId);
 	void setQTableForANeighbor(int nDir, double qValue);
 	void setQTableForANeighborOnFreqScaling(int nDir, double queueTimeY,
 			unsigned int newDivision, unsigned int prevDivision);
+	void setQTableForRegularFlitDelivery(int nDir, int dstId, double ty);
 	void initQTableForANeighbor(int nDir);
 	void initQTable();
 
