@@ -183,8 +183,8 @@ void NoximNoC::buildMesh()
 
 	NoximDVFSUnit::initQTablesForAll();
     NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
-    dvfs2->setDivision(100);
-    dvfs2->setOff(true);
+//    dvfs2->setDivision(100);
+//    dvfs2->setOff(true);
 	for(int i = 0; i<=getMaxId();i++){
     	NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
  //   	dvfs->setDivision(100);

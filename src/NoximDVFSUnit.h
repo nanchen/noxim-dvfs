@@ -70,6 +70,7 @@ SC_MODULE(NoximDVFSUnit) {
 	}
 
 public:
+	int getDirWithMinQValue(int id);
 	void notifyAllNeighbors(int event);
 	void setQTableForANeighbor(int nDir, double qValue);
 	void setQTableForANeighborOnFreqScaling(int nDir, double queueTimeY,

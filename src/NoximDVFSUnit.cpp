@@ -5,6 +5,29 @@
  */
 #include "NoximDVFSUnit.h"
 
+int compareValues(double val1, double val2) {
+	if (val1 == -1.0 && val2 == -1.0)
+		return 0;
+	if (val1 == -1.0)
+		return 1;
+	if (val2 == -1.0)
+		return -1;
+	return (int) (val1 - val2);
+}
+
+int NoximDVFSUnit::getDirWithMinQValue(int dstId) {
+	double min = qTable[0][dstId];
+	int ret = 0;
+	for (int dir = 0; dir < DIRECTIONS; dir++) {
+		double qValue = qTable[dir][dstId];
+		if(compareValues(qValue, min)<0){
+			min = qValue;
+			ret = dir;
+		}
+	}
+	return dir;
+}
+
 int NoximDVFSUnit::distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2) {
 	return hammingDistance(dvfs1->getCoord(), dvfs2->getCoord());
 }
@@ -24,7 +47,6 @@ void NoximDVFSUnit::initQTableForANeighbor(int nDir) {
 			NoximDVFSUnit* d = NoximDVFSUnit::getDVFS(i);
 			int distance = 1 + NoximDVFSUnit::distance(y, d);
 			qTable[nDir][i] = (double) distance;
-
 		}
 	}
 }
@@ -235,7 +257,7 @@ void NoximDVFSUnit::setOff(bool off) {
 	if (this->off == false && off == true) {
 		this->off = off;
 		this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
-	// turn on
+		// turn on
 	} else if (this->off == true && off == false) {
 		this->off = off;
 		this->notifyAllNeighbors(Q_NOTIFY_INIT);
