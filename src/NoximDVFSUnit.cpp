@@ -231,14 +231,15 @@ void NoximDVFSUnit::setDivision(unsigned int division) {
 
 void NoximDVFSUnit::setOff(bool off) {
 	//TODO should power resuming reset division to "1" ?
-	// take effect only when switching
+	// turn off
 	if (this->off == false && off == true) {
 		this->off = off;
 		this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
+	// turn on
 	} else if (this->off == true && off == false) {
 		this->off = off;
 		this->notifyAllNeighbors(Q_NOTIFY_INIT);
+		this->division = 1; // reset division to initial value
 	}
-
 }
 // ---------END--------- divider----------------------------------------
