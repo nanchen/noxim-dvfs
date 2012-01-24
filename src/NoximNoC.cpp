@@ -182,9 +182,12 @@ void NoximNoC::buildMesh()
 		}
 
 	NoximDVFSUnit::initQTablesForAll();
+
+	//Hard code dvfs setting here, setting will take effect at simulation time 0
     NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
 //    dvfs2->setDivision(100);
 //    dvfs2->setOff(true);
+
 	for(int i = 0; i<=getMaxId();i++){
     	NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
  //   	dvfs->setDivision(100);

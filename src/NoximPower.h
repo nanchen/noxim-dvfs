@@ -29,6 +29,8 @@ hop interconnect is 0.384nJ.
 
 */
 
+//TODO what should be the power of routing q?
+#define PWR_ROUTING_Q 			   0.151e-9
 #define PWR_ROUTING_XY             0.151e-9
 #define PWR_ROUTING_WEST_FIRST     0.155e-9
 #define PWR_ROUTING_NORTH_LAST     0.155e-9

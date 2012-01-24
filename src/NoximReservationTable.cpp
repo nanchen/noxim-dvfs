@@ -18,6 +18,8 @@ NoximReservationTable::NoximReservationTable()
 void NoximReservationTable::clear()
 {
     rtable.resize(DIRECTIONS + 1);
+//    if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+//    	std::cout << "\tNoximReservationTable::clear() \n" << "\t" << toString() << std::endl;
 
     // note that NOT_VALID entries should remain untouched
     for (int i = 0; i < DIRECTIONS + 1; i++)
@@ -28,7 +30,10 @@ void NoximReservationTable::clear()
 bool NoximReservationTable::isAvailable(const int port_out) const
 {
     assert(port_out >= 0 && port_out < DIRECTIONS + 1);
-
+    if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+		std::cout << toString() << ":isAvailable?" << std::endl;
+//    std::cout << "NoximReservationTable::isAvailable()" << "rtable[port_out]= "
+//			<< rtable[port_out] << std::endl;
     return ((rtable[port_out] == NOT_RESERVED));
 }
 
@@ -71,5 +76,16 @@ int NoximReservationTable::getOutputPort(const int port_in) const
 // makes port_out no longer available for reservation/release
 void NoximReservationTable::invalidate(const int port_out)
 {
+//	std::cout << "invalidate(" << getDirStr(port_out) << ")" << std::endl;
     rtable[port_out] = NOT_VALID;
+}
+
+char* NoximReservationTable::toString(){
+	char* ret = (char*) malloc(1000 * sizeof(char));
+	sprintf(ret, "%s NoximReservationTable { ", currentTimeStr());
+	for (int i = 0; i < DIRECTIONS + 1; i++) {
+		sprintf(ret, "%s rtable[%s] = %i, ", ret, getDirStr(i), rtable[i]);
+	}
+	sprintf(ret, "%s }",ret);
+	return ret;
 }

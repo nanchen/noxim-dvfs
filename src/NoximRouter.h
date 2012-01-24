@@ -120,6 +120,8 @@ SC_MODULE(NoximRouter)
 		     const NoximRouteData & route_data);
 
     // routing functions
+    vector<int> routingQ(const NoximCoord & destination);
+
     vector < int >routingXY(const NoximCoord & current,
 			    const NoximCoord & destination);
     vector < int >routingWestFirst(const NoximCoord & current,

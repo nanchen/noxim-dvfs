@@ -49,6 +49,8 @@ void showHelp(char selfname[])
     cout <<
 	"\t\ttable FILENAME\tRouting Table Based routing algorithm with table in the specified file"
 	<< endl;
+    cout << "\t\tq \t\tQ-table based routing algorithm" << endl;
+
     cout <<
 	"\t-sel TYPE\tSet the selection strategy to TYPE where TYPE is one of the following (default "
 	<< DEFAULT_SELECTION_STRATEGY << "):" << endl;
@@ -285,7 +287,10 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		    strcpy(NoximGlobalParams::routing_table_filename,
 			   arg_vet[++i]);
 		    NoximGlobalParams::packet_injection_rate = 0;	// ??? why ???
-		} else
+		}else if (!strcmp(routing, "q")){
+			NoximGlobalParams::routing_algorithm = ROUTING_Q;
+		}
+		else
 		    NoximGlobalParams::routing_algorithm = INVALID_ROUTING;
 	    } else if (!strcmp(arg_vet[i], "-sel")) {
 		char *selection = arg_vet[++i];

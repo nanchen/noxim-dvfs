@@ -39,6 +39,8 @@ class NoximReservationTable {
     // Makes output port no longer available for reservation/release
     void invalidate(const int port_out);
 
+    char* toString();
+
   private:
 
      vector < int >rtable;	// reservation vector: rtable[i] gives the input

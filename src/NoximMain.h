@@ -16,6 +16,7 @@
 #include <vector>
 #include <stdio.h>
 #include <math.h>
+#include <set>
 
 using namespace std;
 
@@ -42,6 +43,7 @@ using namespace std;
 #define ROUTING_DYAD           5
 #define ROUTING_FULLY_ADAPTIVE 8
 #define ROUTING_TABLE_BASED    9
+#define ROUTING_Q			  10
 #define INVALID_ROUTING       -1
 
 // Selection strategies
@@ -71,12 +73,12 @@ using namespace std;
 #define DEFAULT_VERBOSE_MODE               VERBOSE_OFF
 #define DEFAULT_TRACE_MODE                       false
 #define DEFAULT_TRACE_FILENAME                      ""
-#define DEFAULT_MESH_DIM_X                           4
-#define DEFAULT_MESH_DIM_Y                           4
+#define DEFAULT_MESH_DIM_X                           2
+#define DEFAULT_MESH_DIM_Y                           2
 #define DEFAULT_BUFFER_DEPTH                         4
 #define DEFAULT_MAX_PACKET_SIZE                     10
 #define DEFAULT_MIN_PACKET_SIZE                      2
-#define DEFAULT_ROUTING_ALGORITHM           ROUTING_XY
+#define DEFAULT_ROUTING_ALGORITHM            ROUTING_Q
 #define DEFAULT_ROUTING_TABLE_FILENAME              ""
 #define DEFAULT_SELECTION_STRATEGY          SEL_RANDOM
 #define DEFAULT_PACKET_INJECTION_RATE             0.01
@@ -181,7 +183,7 @@ struct NoximRouteData {
 
 struct NoximChannelStatus {
     int free_slots;		// occupied buffer slots
-    bool available;		// 
+    bool available;		//
     inline bool operator ==(const NoximChannelStatus & bs) const {
 	return (free_slots == bs.free_slots && available == bs.available);
     };
@@ -214,6 +216,7 @@ struct NoximFlit {
     NoximPayload payload;	// Optional payload
     double timestamp;		// Unix timestamp at packet generation
     int hop_no;			// Current number of hops from source to destination
+    unsigned long gId;
 
     inline bool operator ==(const NoximFlit & flit) const {
 	return (flit.src_id == src_id && flit.dst_id == dst_id
@@ -264,7 +267,7 @@ inline ostream & operator <<(ostream & os, const NoximFlit & flit)
 	    break;
 	}
 
-	os << ", seq: " << flit.sequence_no << ", " << flit.src_id << "-->" << flit.dst_id << "]";
+	os << ", gid: " << flit.gId << ", seq: " << flit.sequence_no << ", " << flit.src_id << "-->" << flit.dst_id << "]";
     }
 
     return os;
@@ -337,28 +340,24 @@ inline NoximCoord id2Coord(int id)
     return coord;
 }
 
-inline int xy2Id(int x, int y)
-{
-    int id = (y * NoximGlobalParams::mesh_dim_x) + x;
-
-    assert(id < NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y);
-
-    return id;
+inline int xy2Id(int x, int y) {
+	int id = (y * NoximGlobalParams::mesh_dim_x) + x;
+	assert(id < NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y);
+	return id;
 }
 
-inline int coord2Id(const NoximCoord & coord)
-{
+inline int coord2Id(const NoximCoord & coord) {
 	return xy2Id(coord.x, coord.y);
 }
 
-inline NoximCoord getMaxCoord(){
-	   NoximCoord coord;
-	   coord.x = NoximGlobalParams::mesh_dim_x - 1;
-	   coord.y = NoximGlobalParams::mesh_dim_y - 1;
-	   return coord;
+inline NoximCoord getMaxCoord() {
+	NoximCoord coord;
+	coord.x = NoximGlobalParams::mesh_dim_x - 1;
+	coord.y = NoximGlobalParams::mesh_dim_y - 1;
+	return coord;
 }
 
-inline int getMaxId(){
+inline int getMaxId() {
 	return coord2Id(getMaxCoord());
 }
 
@@ -366,17 +365,22 @@ inline char* getDirStr(const int dir) {
 	char* ret = (char*) malloc(5 * sizeof(char));
 	switch (dir) {
 	case DIRECTION_NORTH:
-		ret = "north";
+		ret = "N";
 		break;
 	case DIRECTION_SOUTH:
-		ret = "south";
+		ret = "S";
 		break;
 	case DIRECTION_WEST:
-		ret = "west";
+		ret = "W";
 		break;
 	case DIRECTION_EAST:
-		ret = "east";
+		ret = "E";
 		break;
+	case DIRECTION_LOCAL:
+		ret = "L";
+		break;
+    default:
+        ret = "UNDEFINED";
 	}
 	return ret;
 }
@@ -395,8 +399,22 @@ inline int getOppositDir(const int dir) {
 	assert(false);
 }
 
-inline int hammingDistance(const NoximCoord& c1, const NoximCoord& c2){
-	return abs(c1.x-c2.x)+abs(c1.y-c2.y);
+inline int hammingDistance(const NoximCoord& c1, const NoximCoord& c2) {
+	return abs(c1.x - c2.x) + abs(c1.y - c2.y);
 }
 
+inline double currentTime() {
+	return sc_time_stamp().to_double() / 1000;
+}
+inline char* currentTimeStr(){
+	char* ret = (char*) malloc(50 * sizeof(char));
+	sprintf(ret, "@%.0f:", currentTime());
+	return ret;
+}
+
+//static unsigned long flitGId = 0;
+unsigned long getNextFlitGId();
+
+void insertToGIdSet(unsigned long gid);
+void eraseFromGIdSet(unsigned long gid);
 #endif

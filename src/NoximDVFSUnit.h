@@ -17,6 +17,8 @@ SC_MODULE(NoximDVFSUnit) {
 	const static int Q_NOTIFY_INFINITY = 1;
 	const static int Q_NOTIFY_FREQ_SCALING = 2;
 
+	const static double Q_INFINITY = 1000000000.0;  // 1 billon
+
 	// ---------divider-----------------
 	sc_in_clk clock;
 	sc_in<bool> reset;
@@ -62,15 +64,22 @@ SC_MODULE(NoximDVFSUnit) {
 		sensitive << reset;
 		sensitive << clock.neg();
 
+		queueTime = 1.0;
+
 		// init neighbor units
 		for (int i = 0; i < DIRECTIONS; i++)
-		nUnit[i] = NULL;
+			nUnit[i] = NULL;
 
-		queueTime = 1;
+		// init q table
+		for(int dir=0;dir <DIRECTIONS;dir++)
+			for(int destination =0; destination < MAX_STATIC_DIM * MAX_STATIC_DIM; destination ++)
+				setQValue(destination, dir, Q_INFINITY);
 	}
 
 public:
 	int getDirWithMinQValue(int dstId);
+	double getQValue(int dstId, int yDir);
+	void setQValue(int dstId, int yDir, double qValue);
 	void notifyAllNeighbors(int event);
 	void notifyNeighborWithRegularFlitDelivery(int neighborDir, int dstId);
 	void setQTableForANeighbor(int nDir, double qValue);
@@ -82,6 +91,10 @@ public:
 
 	static void initQTablesForAll();
 	static int distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2);
+
+	//routing
+	int routingQ(const int dstId);
+	vector<int> scheduleRoutingPath(const int dstId);
 
 	// divider
 	void setDivision(unsigned int division);

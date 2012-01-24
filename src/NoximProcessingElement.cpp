@@ -10,6 +10,9 @@
 
 #include "NoximProcessingElement.h"
 
+static bool inProcess = false;
+static int inProcessId = -1;
+
 int NoximProcessingElement::randInt(int min, int max)
 {
     return min +
@@ -32,6 +35,10 @@ void NoximProcessingElement::rxProcess()
 		    local_id << "] RECEIVING " << flit_tmp << endl;
 	    }
 	    current_level_rx = 1 - current_level_rx;	// Negate the old value for Alternating Bit Protocol (ABP)
+	    if(flit_tmp.flit_type = FLIT_TYPE_TAIL){
+	    	inProcess = false;
+	    	eraseFromGIdSet(flit_tmp.gId);
+	    }
 	}
 	ack_rx.write(current_level_rx);
     }
@@ -47,7 +54,12 @@ void NoximProcessingElement::txProcess()
 	current_level_tx = 0;
 	transmittedAtPreviousCycle = false;
     } else {
-	NoximPacket packet;
+
+    // only 1 packet could be sent simutaneously
+//    if(inProcess && inProcessId !=local_id)
+//		return;
+
+    NoximPacket packet;
 
 	if (canShot(packet)) {
 	    packet_queue.push(packet);
@@ -67,6 +79,9 @@ void NoximProcessingElement::txProcess()
 		flit_tx->write(flit);	// Send the generated flit
 		current_level_tx = 1 - current_level_tx;	// Negate the old value for Alternating Bit Protocol (ABP)
 		req_tx.write(current_level_tx);
+		inProcess = true;
+		inProcessId = local_id;
+		insertToGIdSet(flit.gId);
 	    }
 	}
     }
@@ -82,6 +97,7 @@ NoximFlit NoximProcessingElement::nextFlit()
     flit.timestamp = packet.timestamp;
     flit.sequence_no = packet.size - packet.flit_left;
     flit.hop_no = 0;
+    flit.gId = getNextFlitGId();
     //  flit.payload     = DEFAULT_PAYLOAD;
 
     if (packet.size == packet.flit_left)
@@ -177,8 +193,7 @@ NoximPacket NoximProcessingElement::trafficRandom()
     //cout << "\n " << sc_time_stamp().to_double()/1000 << " PE " << local_id << " rnd = " << rnd << endl;
 
     int max_id =
-	(NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y) -
-	1;
+			(NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y) - 1;
 
     // Random destination distribution
     do {

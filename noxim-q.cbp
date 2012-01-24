@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="noxim-q" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/noxim-q" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-fpermissive" />
+					<Add directory="/home/nan/dev/systemc-2.2.0/include" />
+					<Add directory="src" />
+					<Add directory="tests" />
+				</Compiler>
+				<Linker>
+					<Add library="../../../dev/systemc-2.2.0/lib-linux/libsystemc.a" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/noxim-q" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="src/NoximBuffer.cpp" />
+		<Unit filename="src/NoximBuffer.h" />
+		<Unit filename="src/NoximCmdLineParser.cpp" />
+		<Unit filename="src/NoximCmdLineParser.h" />
+		<Unit filename="src/NoximDVFSUnit.cpp" />
+		<Unit filename="src/NoximDVFSUnit.h" />
+		<Unit filename="src/NoximGlobalRoutingTable.cpp" />
+		<Unit filename="src/NoximGlobalRoutingTable.h" />
+		<Unit filename="src/NoximGlobalStats.cpp" />
+		<Unit filename="src/NoximGlobalStats.h" />
+		<Unit filename="src/NoximGlobalTrafficTable.cpp" />
+		<Unit filename="src/NoximGlobalTrafficTable.h" />
+		<Unit filename="src/NoximLocalRoutingTable.cpp" />
+		<Unit filename="src/NoximLocalRoutingTable.h" />
+		<Unit filename="src/NoximMain.cpp" />
+		<Unit filename="src/NoximMain.h" />
+		<Unit filename="src/NoximNoC.cpp" />
+		<Unit filename="src/NoximNoC.h" />
+		<Unit filename="src/NoximPower.cpp" />
+		<Unit filename="src/NoximPower.h" />
+		<Unit filename="src/NoximProcessingElement.cpp" />
+		<Unit filename="src/NoximProcessingElement.h" />
+		<Unit filename="src/NoximReservationTable.cpp" />
+		<Unit filename="src/NoximReservationTable.h" />
+		<Unit filename="src/NoximRouter.cpp" />
+		<Unit filename="src/NoximRouter.h" />
+		<Unit filename="src/NoximStats.cpp" />
+		<Unit filename="src/NoximStats.h" />
+		<Unit filename="src/NoximTile.cpp" />
+		<Unit filename="src/NoximTile.h" />
+		<Unit filename="tests/NoximDVFSUnitTest.cpp" />
+		<Unit filename="tests/NoximDVFSUnitTest.h" />
+		<Unit filename="tests/NoximQTestMain.cpp" />
+		<Unit filename="tests/Suite.cpp" />
+		<Unit filename="tests/Suite.h" />
+		<Unit filename="tests/Test.cpp" />
+		<Unit filename="tests/Test.h" />
+		<Extensions>
+			<code_completion>
+				<search_path add="/home/nan/dev/systemc-2.2.0/include" />
+			</code_completion>
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

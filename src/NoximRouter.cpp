@@ -41,17 +41,17 @@ void NoximRouter::rxProcess()
 		NoximFlit received_flit = flit_rx[i].read();
 
 		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-		    cout << sc_time_stamp().to_double() /
-			1000 << ": Router[" << local_id << "], Input[" << i
+		    cout << toString() << " Input[" << i
 			<< "], Received flit: " << received_flit << endl;
 		}
 		// Store the incoming flit in the circular buffer
 		buffer[i].Push(received_flit);
 
 		// DVFS
+		flitReceivedTime = sc_time_stamp().to_double() / 1000;
+		//TODO check the condition		
 		if(i != DIRECTION_LOCAL){
-			flitReceivedTime = sc_time_stamp().to_double() / 1000;
-			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
+//			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
 		}
 
 		// Negate the old value for Alternating Bit Protocol (ABP)
@@ -94,15 +94,19 @@ void NoximRouter::txProcess()
 		    route_data.dir_in = i;
 
 		    int o = route(route_data);
+		    const bool isAvailable = reservation_table.isAvailable(o);
+		    if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+						cout << toString() << " input = " << getDirStr(i)
+								<< ", output = " << getDirStr(o)
+								<< ", reservation_table.isAvailable(o)? "
+								<< isAvailable << endl << endl;
 
-		    if (reservation_table.isAvailable(o)) {
+		    if (isAvailable) {
 			reservation_table.reserve(i, o);
-			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-			    cout << sc_time_stamp().to_double() / 1000
-				<< ": Router[" << local_id
-				<< "], Input[" << i << "] (" << buffer[i].
+			if (NoximGlobalParams::verbose_mode > VERBOSE_LOW) {
+			    cout << toString() << " Input[" << getDirStr(i) << "] (" << buffer[i].
 				Size() << " flits)" << ", reserved Output["
-				<< o << "], flit: " << flit << endl;
+				<< getDirStr(o) << "], flit: " << flit << endl;
 			}
 		    }
 		}
@@ -115,20 +119,12 @@ void NoximRouter::txProcess()
 	    if (!buffer[i].IsEmpty()) {
 		NoximFlit flit = buffer[i].Front();
 
-		// DVFS
-		if(i != DIRECTION_LOCAL){
-			double qTime = sc_time_stamp().to_double() / 1000 - flitReceivedTime;
-			dvfs->setQueueTime(qTime);
-		}
-
 		int o = reservation_table.getOutputPort(i);
 		if (o != NOT_RESERVED) {
 		    if (current_level_tx[o] == ack_tx[o].read()) {
 			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-			    cout << sc_time_stamp().to_double() / 1000
-				<< ": Router[" << local_id
-				<< "], Input[" << i <<
-				"] forward to Output[" << o << "], flit: "
+			    cout << toString() << "Input[" << getDirStr(i) <<
+				"] forward to Output[" << getDirStr(o) << "], flit: "
 				<< flit << endl;
 			}
 
@@ -142,6 +138,15 @@ void NoximRouter::txProcess()
 			if (flit.flit_type == FLIT_TYPE_TAIL)
 			    reservation_table.release(o);
 
+			// DVFS  TODO is this condition right? (for every destination, set queue time)
+			double qTime = sc_time_stamp().to_double() / 1000
+								- flitReceivedTime;
+						if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+							cout << toString() << "flitReceivedTime = "
+									<< flitReceivedTime << ", currentTime = "
+									<< sc_time_stamp().to_double() / 1000
+									<< ", qTime = " << qTime << endl;
+						dvfs->setQueueTime(qTime);
 			// Update stats
 			if (o == DIRECTION_LOCAL) {
 			    stats.receivedFlit(sc_time_stamp().
@@ -211,15 +216,20 @@ void NoximRouter::bufferMonitor()
     }
 }
 
-vector <
-    int >NoximRouter::routingFunction(const NoximRouteData & route_data)
+vector <int> NoximRouter::routingFunction(const NoximRouteData & route_data)
 {
     NoximCoord position = id2Coord(route_data.current_id);
     NoximCoord src_coord = id2Coord(route_data.src_id);
     NoximCoord dst_coord = id2Coord(route_data.dst_id);
     int dir_in = route_data.dir_in;
 
+    vector<int> dirs;
     switch (NoximGlobalParams::routing_algorithm) {
+	case ROUTING_Q:
+
+		dirs.push_back(dvfs->routingQ(route_data.dst_id));
+		return dirs;
+
     case ROUTING_XY:
 	return routingXY(position, dst_coord);
 
@@ -764,8 +774,8 @@ void NoximRouter::setId(int aId){
 }
 
 char* NoximRouter::toString() const {
-	char* ret = (char*) malloc(50 * sizeof(char));
-	sprintf(ret, " Router [%3d] at %s", local_id, dvfs->getCoord().toString());
+	char* ret = (char*) malloc(100 * sizeof(char));
+	sprintf(ret, "%s Router [%3d] at %s", currentTimeStr(), local_id, dvfs->getCoord().toString());
 	return ret;
 }
 //----------------ID, coord and toString------END---------------------------

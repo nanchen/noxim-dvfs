@@ -19,8 +19,8 @@ NoximPower::NoximPower()
     pwr_forward = PWR_FORWARD_FLIT;
     pwr_incoming = PWR_INCOMING;
 
-    if (NoximGlobalParams::routing_algorithm == ROUTING_XY)
-	pwr_routing = PWR_ROUTING_XY;
+    if (NoximGlobalParams::routing_algorithm == ROUTING_Q)
+    pwr_routing = PWR_ROUTING_Q;
     else if (NoximGlobalParams::routing_algorithm == ROUTING_XY)
 	pwr_routing = PWR_ROUTING_XY;
     else if (NoximGlobalParams::routing_algorithm == ROUTING_WEST_FIRST)

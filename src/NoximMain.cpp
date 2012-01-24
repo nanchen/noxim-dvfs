@@ -43,6 +43,24 @@ vector <pair <int, double> > NoximGlobalParams::hotspots;
 
 //---------------------------------------------------------------------------
 
+static set<unsigned long>* gidSet = new set<unsigned long> ;
+
+static void printGIdSet() {
+	set<unsigned long>::iterator it;
+	cout << "-------------------Flit gid set (Flits not routed to dest)----"
+			<< gidSet->size() << "--------------:";
+	for (it = gidSet->begin(); it != gidSet->end(); it++)
+		cout << " " << *it;
+	cout << endl;
+}
+
+static void insertToGIdSet(unsigned long gid) {
+	//	cout << "insertToGIdSet gid = " << gid<< endl;;
+	gidSet->insert(gid);
+}
+static void eraseFromGIdSet(unsigned long gid) {
+	gidSet->erase(gid);
+}
 int sc_main(int arg_num, char *arg_vet[])
 {
     // TEMP
@@ -111,6 +129,9 @@ int sc_main(int arg_num, char *arg_vet[])
     cout << " ( " << sc_time_stamp().to_double() /
 	1000 << " cycles executed)" << endl;
 
+    cout << "Total flits: " << getNextFlitGId() -1 << endl;
+    printGIdSet();
+
     // Show statistics
     NoximGlobalStats gs(n);
     gs.showStats(std::cout, NoximGlobalParams::detailed);
@@ -136,4 +157,9 @@ int sc_main(int arg_num, char *arg_vet[])
     }
 
     return 0;
+}
+
+static unsigned long flitGId = 0;
+static unsigned long getNextFlitGId(){
+	return ++flitGId;
 }
