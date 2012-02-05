@@ -29,8 +29,8 @@ bool NoximDVFSSetting::load(const char *fname) {
 
 				int params = sscanf(line, "%d,%d %d %s %d", &x, &y, &timeStamp,
 						&action, &division);
-				cout << "params = " << x << ", " << y << " @ " << timeStamp
-						<< ": " << action << " division = " << division << endl;
+//				cout << "params = " << x << ", " << y << " @ " << timeStamp
+//						<< ": " << action << " division = " << division << endl;
 				if (params >= 2) {
 					DVFSAction dvfsAction = DVFSAction();
 

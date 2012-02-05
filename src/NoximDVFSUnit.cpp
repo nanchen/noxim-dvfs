@@ -346,9 +346,10 @@ void NoximDVFSUnit::checkDVFSActions() {
 		 for (unsigned int i=0; i<actions.size(); i++){
 			 DVFSAction action = actions.at(i);
 			 if(action.timeStamp == relativeTime){
-				 cout << "actions.size() before executing: " << actions.size() << endl;
+//				 cout << "actions.size() before executing: " << actions.size() << endl;
 				 executeAction(action);
 				 actions.erase(actions.begin() + i);
+//				 cout << "actions.size() after executing: " << actions.size() << endl;
 			 }
 		 }
 	}
