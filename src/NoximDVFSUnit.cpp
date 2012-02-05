@@ -4,6 +4,7 @@
  *
  */
 #include "NoximDVFSUnit.h"
+#include <math.h>
 
 int compareValues(double val1, double val2) {
 	return (int) (val1 - val2);
@@ -336,6 +337,37 @@ void NoximDVFSUnit::incrementDivisionCounter() {
 	else
 		divisionCount++;
 }
+
+
+void NoximDVFSUnit::checkDVFSActions() {
+	const int relativeTime = floor(currentTime()) - NoximGlobalParams::stats_warm_up_time;
+//	cout << "NoximDVFSUnit.checkDVFSActions division counter, currentTime() = " << floor(currentTime()) << endl;
+	if (!reset.read()){
+		 for (unsigned int i=0; i<actions.size(); i++){
+			 DVFSAction action = actions.at(i);
+			 if(action.timeStamp == relativeTime){
+				 cout << "actions.size() before executing: " << actions.size() << endl;
+				 executeAction(action);
+				 actions.erase(actions.begin() + i);
+			 }
+		 }
+	}
+}
+
+void NoximDVFSUnit::executeAction(DVFSAction action){
+	 cout << currentTimeStr() << ", Executing action: " << action.toString() << endl;
+	 string actionStr = action.action;
+	if(actionStr.compare("off")==0)
+		setOff(true);
+	else if(actionStr.compare("on")==0)
+		setOff(false);
+	else if(actionStr.compare("div")==0)
+		setDivision(action.division);
+	else
+		assert(false);
+}
+
+
 
 void NoximDVFSUnit::setDivision(unsigned int division) {
 	this->preDivision = this->division;

@@ -33,6 +33,7 @@ float NoximGlobalParams::packet_injection_rate = DEFAULT_PACKET_INJECTION_RATE;
 float NoximGlobalParams::probability_of_retransmission = DEFAULT_PROBABILITY_OF_RETRANSMISSION;
 int NoximGlobalParams::traffic_distribution = DEFAULT_TRAFFIC_DISTRIBUTION;
 char NoximGlobalParams::traffic_table_filename[128] = DEFAULT_TRAFFIC_TABLE_FILENAME;
+char NoximGlobalParams::dvfs_setting_filename[128] = DEFAULT_DVFS_SETTING_FILENAME;
 int NoximGlobalParams::simulation_time = DEFAULT_SIMULATION_TIME;
 int NoximGlobalParams::stats_warm_up_time = DEFAULT_STATS_WARM_UP_TIME;
 int NoximGlobalParams::rnd_generator_seed = time(NULL);

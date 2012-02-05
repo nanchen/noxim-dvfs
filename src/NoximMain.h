@@ -85,6 +85,7 @@ using namespace std;
 #define DEFAULT_PROBABILITY_OF_RETRANSMISSION     0.01
 #define DEFAULT_TRAFFIC_DISTRIBUTION   TRAFFIC_RANDOM
 #define DEFAULT_TRAFFIC_TABLE_FILENAME              ""
+#define DEFAULT_DVFS_SETTING_FILENAME				""
 #define DEFAULT_RESET_TIME                        1000
 #define DEFAULT_SIMULATION_TIME                  10000
 #define DEFAULT_STATS_WARM_UP_TIME  DEFAULT_RESET_TIME
@@ -112,6 +113,7 @@ struct NoximGlobalParams {
     static float probability_of_retransmission;
     static int traffic_distribution;
     static char traffic_table_filename[128];
+    static char dvfs_setting_filename[128];
     static int simulation_time;
     static int stats_warm_up_time;
     static int rnd_generator_seed;

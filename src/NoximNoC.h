@@ -15,6 +15,7 @@
 #include "NoximTile.h"
 #include "NoximGlobalRoutingTable.h"
 #include "NoximGlobalTrafficTable.h"
+#include "NoximDVFSSetting.h"
 using namespace std;
 
 SC_MODULE(NoximNoC)

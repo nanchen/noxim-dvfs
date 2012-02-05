@@ -8,6 +8,10 @@
 ../src/NoximNoC.o: ../src/NoximReservationTable.h
 ../src/NoximNoC.o: ../src/NoximProcessingElement.h
 ../src/NoximNoC.o: ../src/NoximGlobalTrafficTable.h
+../src/NoximNoC.o: ../src/NoximDVFSSetting.h
+../src/NoximDVFSUnit.o: ../src/DVFSAction.h
+../src/NoximDVFSUnit.o: ../src/NoximDVFSSetting.h
+../src/NoximDVFSSetting.o: ../src/DVFSAction.h
 ../src/NoximRouter.o: ../src/NoximRouter.h ../src/NoximMain.h
 ../src/NoximRouter.o: ../src/NoximBuffer.h ../src/NoximStats.h
 ../src/NoximRouter.o: ../src/NoximPower.h ../src/NoximGlobalRoutingTable.h

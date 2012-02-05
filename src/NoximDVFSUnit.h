@@ -8,7 +8,10 @@
 #define	NOXIMDVFSUNIT_H
 
 #include <systemc.h>
+#include <string>
 #include "NoximMain.h"
+#include "NoximDVFSSetting.h"
+#include "DVFSAction.h"
 
 using namespace std;
 
@@ -26,6 +29,8 @@ SC_MODULE(NoximDVFSUnit) {
 	unsigned int division;
 	unsigned int preDivision;
 	void incrementDivisionCounter();
+	void checkDVFSActions();
+	void executeAction(DVFSAction action);
 
 	//-----------------id, coord, toString, neighbor------------------
 	// static array
@@ -56,6 +61,7 @@ SC_MODULE(NoximDVFSUnit) {
 	//-----------------id, coord, toString, neighbor------------------
 
 	SC_CTOR(NoximDVFSUnit) {
+
 		// divider functions
 		off = false;
 		division = 1;
@@ -63,6 +69,11 @@ SC_MODULE(NoximDVFSUnit) {
 		SC_METHOD( incrementDivisionCounter);
 		sensitive << reset;
 		sensitive << clock.neg();
+
+		SC_METHOD(checkDVFSActions);
+		sensitive << reset;
+		sensitive << clock.pos();
+
 
 		queueTime = 1.0;
 
@@ -102,6 +113,7 @@ public:
 	bool isDutyCycle();
 	void setQueueTime(double qTime);
 
+	vector<DVFSAction> actions;
 private:
 	double qTable[DIRECTIONS][MAX_STATIC_DIM * MAX_STATIC_DIM];
 	unsigned int divisionCount;

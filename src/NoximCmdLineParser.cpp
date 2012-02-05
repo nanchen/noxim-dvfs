@@ -354,7 +354,11 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		} else
 		    NoximGlobalParams::traffic_distribution =
 			INVALID_TRAFFIC;
-	    } else if (!strcmp(arg_vet[i], "-hs")) {
+	    }
+	    // DVFS setting
+		else if (!strcmp(arg_vet[i], "-dvfs")) {
+			strcpy(NoximGlobalParams::dvfs_setting_filename, arg_vet[++i]);
+		} else if (!strcmp(arg_vet[i], "-hs")) {
 		int node = atoi(arg_vet[++i]);
 		double percentage = atof(arg_vet[++i]);
 		pair < int, double >t(node, percentage);

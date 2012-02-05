@@ -10,7 +10,7 @@ MODULE = noxim
 SRCS = ./NoximNoC.cpp ./NoximRouter.cpp ./NoximProcessingElement.cpp ./NoximBuffer.cpp \
 	./NoximStats.cpp ./NoximGlobalStats.cpp ./NoximGlobalRoutingTable.cpp \
 	./NoximLocalRoutingTable.cpp ./NoximGlobalTrafficTable.cpp ./NoximReservationTable.cpp \
-	./NoximPower.cpp ./NoximCmdLineParser.cpp ./NoximMain.cpp ./NoximTile.cpp ./NoximDVFSUnit.cpp
+	./NoximPower.cpp ./NoximCmdLineParser.cpp ./NoximMain.cpp ./NoximTile.cpp ./NoximDVFSUnit.cpp ./NoximDVFSSetting.cpp ./DVFSAction.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 include ./Makefile.defs
