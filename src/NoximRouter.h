@@ -64,6 +64,9 @@ SC_MODULE(NoximRouter)
     // dvfs
     NoximDVFSUnit* dvfs;
     double flitReceivedTime;
+    void setDVFS(NoximDVFSUnit* aDVFS);
+    sc_in<bool> off;
+    void switchProcess();
 
     //-----------------id, coord, toString ------------------
 	// coord
@@ -78,6 +81,11 @@ SC_MODULE(NoximRouter)
     // Functions
     void rxProcess();		// The receiving process
     void txProcess();		// The transmitting process
+    // reset
+    void resetRx();
+    void resetTx();
+    void resetTxRx();
+    // misc
     void bufferMonitor();
     void configure(const int _id, const double _warm_up_time,
 		   const unsigned int _max_buffer_size,
@@ -101,6 +109,9 @@ SC_MODULE(NoximRouter)
 	SC_METHOD(bufferMonitor);
 	sensitive << reset;
 	sensitive << clock.pos();
+
+	SC_METHOD(switchProcess);
+	sensitive << off;
     }
 
   private:

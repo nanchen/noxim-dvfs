@@ -69,6 +69,8 @@ SC_MODULE(NoximProcessingElement)
     int getBit(int x, int w);
     double log2ceil(double x);
 
+	char* toString() const;
+
     // Constructor
     SC_CTOR(NoximProcessingElement) {
 	SC_METHOD(rxProcess);

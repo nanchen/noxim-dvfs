@@ -149,7 +149,6 @@ void NoximDVFSUnitTest::testQTableChangeRegularDelivery(){
     dvfs3->setQueueTime(1.0);
     dvfs2->notifyNeighborWithRegularFlitDelivery(DIRECTION_EAST, 0);
     test_(27.5 == dvfs3->getQValue(0, DIRECTION_WEST));
-
 }
 
 

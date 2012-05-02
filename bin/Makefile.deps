@@ -11,6 +11,7 @@
 ../src/NoximNoC.o: ../src/NoximDVFSSetting.h
 ../src/NoximDVFSUnit.o: ../src/DVFSAction.h
 ../src/NoximDVFSUnit.o: ../src/NoximDVFSSetting.h
+../src/NoximDVFSUnit.o: ../src/NoximRouter.h
 ../src/NoximDVFSSetting.o: ../src/DVFSAction.h
 ../src/NoximRouter.o: ../src/NoximRouter.h ../src/NoximMain.h
 ../src/NoximRouter.o: ../src/NoximBuffer.h ../src/NoximStats.h

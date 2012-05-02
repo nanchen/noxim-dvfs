@@ -112,6 +112,7 @@ struct NoximGlobalParams {
     static float packet_injection_rate;
     static float probability_of_retransmission;
     static int traffic_distribution;
+    static bool concurrent_traffic;
     static char traffic_table_filename[128];
     static char dvfs_setting_filename[128];
     static int simulation_time;

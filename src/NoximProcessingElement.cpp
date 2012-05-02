@@ -31,8 +31,7 @@ void NoximProcessingElement::rxProcess()
 	if (req_rx.read() == 1 - current_level_rx) {
 	    NoximFlit flit_tmp = flit_rx.read();
 	    if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-		cout << sc_simulation_time() << ": ProcessingElement[" <<
-		    local_id << "] RECEIVING " << flit_tmp << endl;
+		cout << toString() << " RECEIVING " << flit_tmp << endl;
 	    }
 	    current_level_rx = 1 - current_level_rx;	// Negate the old value for Alternating Bit Protocol (ABP)
 	    if(flit_tmp.flit_type = FLIT_TYPE_TAIL){
@@ -55,9 +54,9 @@ void NoximProcessingElement::txProcess()
 	transmittedAtPreviousCycle = false;
     } else {
 
-    // only 1 packet could be sent simutaneously
-//    if(inProcess && inProcessId !=local_id)
-//		return;
+    //only 1 packet could be sent simutaneously
+    if(NoximGlobalParams::concurrent_traffic == false && inProcess && inProcessId !=local_id)
+    	return;
 
     NoximPacket packet;
 
@@ -66,15 +65,16 @@ void NoximProcessingElement::txProcess()
 	    transmittedAtPreviousCycle = true;
 	} else
 	    transmittedAtPreviousCycle = false;
-
-
+	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+		cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
+		     << ack_tx.read() << ", current_level_tx = " << current_level_tx
+			 << ", flit_left = " << packet_queue.front().flit_left
+			 << endl;
 	if (ack_tx.read() == current_level_tx) {
 	    if (!packet_queue.empty()) {
 		NoximFlit flit = nextFlit();	// Generate a new flit
 		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-		    cout << sc_time_stamp().to_double() /
-			1000 << ": ProcessingElement[" << local_id <<
-			"] SENDING " << flit << endl;
+		    cout << toString() << "SENDING " << flit << endl;
 		}
 		flit_tx->write(flit);	// Send the generated flit
 		current_level_tx = 1 - current_level_tx;	// Negate the old value for Alternating Bit Protocol (ABP)
@@ -201,7 +201,7 @@ NoximPacket NoximProcessingElement::trafficRandom()
 
 	// check for hotspot destination
 	for (uint i = 0; i < NoximGlobalParams::hotspots.size(); i++) {
-	    //cout << sc_time_stamp().to_double()/1000 << " PE " << local_id << " Checking node " << NoximGlobalParams::hotspots[i].first << " with P = " << NoximGlobalParams::hotspots[i].second << endl;
+	    cout << sc_time_stamp().to_double()/1000 << " PE " << local_id << " Checking node " << NoximGlobalParams::hotspots[i].first << " with P = " << NoximGlobalParams::hotspots[i].second << endl;
 
 	    if (rnd >= range_start
 		&& rnd <
@@ -371,4 +371,10 @@ int NoximProcessingElement::getRandomSize()
 {
     return randInt(NoximGlobalParams::min_packet_size,
 		   NoximGlobalParams::max_packet_size);
+}
+
+char* NoximProcessingElement::toString() const {
+	char* ret = (char*) malloc(100 * sizeof(char));
+	sprintf(ret, "%s PE[%3d] ", currentTimeStr(), local_id);
+	return ret;
 }

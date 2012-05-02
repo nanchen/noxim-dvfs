@@ -369,6 +369,8 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		NoximGlobalParams::rnd_generator_seed = atoi(arg_vet[++i]);
 	    else if (!strcmp(arg_vet[i], "-detailed"))
 		NoximGlobalParams::detailed = true;
+	    else if (!strcmp(arg_vet[i], "-no-ct"))
+	    NoximGlobalParams::concurrent_traffic = false;
 	    else if (!strcmp(arg_vet[i], "-volume"))
 		NoximGlobalParams::max_volume_to_be_drained =
 		    atoi(arg_vet[++i]);

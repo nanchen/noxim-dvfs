@@ -41,17 +41,18 @@ void NoximRouter::rxProcess()
 		NoximFlit received_flit = flit_rx[i].read();
 
 		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-		    cout << toString() << " Input[" << i
+		    cout << toString() << " Input[" << getDirStr(i)
 			<< "], Received flit: " << received_flit << endl;
 		}
 		// Store the incoming flit in the circular buffer
 		buffer[i].Push(received_flit);
 
-		// DVFS
+		// ------------------------- DVFS --------------------------------------
 		flitReceivedTime = sc_time_stamp().to_double() / 1000;
-		//TODO check the condition		
+
+		//TODO think about this logic: don't notify when received from PE	
 		if(i != DIRECTION_LOCAL){
-//			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
+			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
 		}
 
 		// Negate the old value for Alternating Bit Protocol (ABP)
@@ -95,19 +96,23 @@ void NoximRouter::txProcess()
 
 		    int o = route(route_data);
 		    const bool isAvailable = reservation_table.isAvailable(o);
-		    if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+		    
+			// log
+			if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
 						cout << toString() << " input = " << getDirStr(i)
 								<< ", output = " << getDirStr(o)
 								<< ", reservation_table.isAvailable(o)? "
 								<< isAvailable << endl << endl;
 
 		    if (isAvailable) {
-			reservation_table.reserve(i, o);
-			if (NoximGlobalParams::verbose_mode > VERBOSE_LOW) {
-			    cout << toString() << " Input[" << getDirStr(i) << "] (" << buffer[i].
-				Size() << " flits)" << ", reserved Output["
-				<< getDirStr(o) << "], flit: " << flit << endl;
-			}
+				reservation_table.reserve(i, o);
+
+			// log
+				if (NoximGlobalParams::verbose_mode > VERBOSE_LOW) {
+					cout << toString() << " Input[" << getDirStr(i) << "] (" << buffer[i].
+							Size() << " flits)" << ", reserved Output["
+							<< getDirStr(o) << "], flit: " << flit << endl;
+				}
 		    }
 		}
 	    }
@@ -121,7 +126,20 @@ void NoximRouter::txProcess()
 
 		int o = reservation_table.getOutputPort(i);
 		if (o != NOT_RESERVED) {
-		    if (current_level_tx[o] == ack_tx[o].read()) {
+	    	// drop packet when output is off
+			if (dvfs->isNeighborOff(o)) {
+				if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
+					cout << toString() << "Output[" << getDirStr(o)
+							<< "] is off, drop the flit!" << endl;
+				}
+				buffer[i].Pop();
+//				current_level_tx[o] = 1 - current_level_tx[o];
+				if (flit.flit_type == FLIT_TYPE_TAIL)
+					reservation_table.release(o);
+				continue;
+			}
+
+			if (current_level_tx[o] == ack_tx[o].read()) {
 			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
 			    cout << toString() << "Input[" << getDirStr(i) <<
 				"] forward to Output[" << getDirStr(o) << "], flit: "
@@ -138,15 +156,15 @@ void NoximRouter::txProcess()
 			if (flit.flit_type == FLIT_TYPE_TAIL)
 			    reservation_table.release(o);
 
-			// DVFS  TODO is this condition right? (for every destination, set queue time)
+			// DVFS  TODO is this condition right? (for any destination, set queue time)
 			double qTime = sc_time_stamp().to_double() / 1000
-								- flitReceivedTime;
-						if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-							cout << toString() << "flitReceivedTime = "
-									<< flitReceivedTime << ", currentTime = "
-									<< sc_time_stamp().to_double() / 1000
-									<< ", qTime = " << qTime << endl;
-						dvfs->setQueueTime(qTime);
+						- flitReceivedTime;
+			if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
+				cout << toString() << "flitReceivedTime = "
+					<< flitReceivedTime << ", currentTime = "
+					<< sc_time_stamp().to_double() / 1000
+					<< ", qTime = " << qTime << endl;
+			dvfs->setQueueTime(qTime);
 			// Update stats
 			if (o == DIRECTION_LOCAL) {
 			    stats.receivedFlit(sc_time_stamp().
@@ -780,3 +798,45 @@ char* NoximRouter::toString() const {
 }
 //----------------ID, coord and toString------END---------------------------
 
+void NoximRouter::setDVFS(NoximDVFSUnit* aDVFS) {
+	this->dvfs = aDVFS;
+}
+
+void NoximRouter::resetRx(){
+	// Clear outputs and indexes of receiving protocol
+	for (int i = 0; i < DIRECTIONS + 1; i++) {
+	    ack_rx[i].write(0);
+	    current_level_rx[i] = 0;
+	}
+	reservation_table.clear();
+}
+
+void NoximRouter::resetTx(){
+	// Clear outputs and indexes of transmitting protocol
+	for (int i = 0; i < DIRECTIONS + 1; i++) {
+	    req_tx[i].write(0);
+	    current_level_tx[i] = 0;
+	}
+}
+
+void NoximRouter::resetTxRx(){
+	resetTx();
+	resetRx();
+}
+
+void NoximRouter::switchProcess(){
+	cout << toString() << ", switchProcess off == " << off.read() << endl;
+
+	if (off.read()) {
+
+    }
+    // resume
+    else if(!reset.read()){
+    //	resetTxRx();
+    	for (int i = 0; i < DIRECTIONS; i++) {
+ //   		req_tx[i].write(ack_tx[i].read());
+    		current_level_tx[i] = ack_tx[i].read();
+    	}
+    	reservation_table.clear();
+    }
+}

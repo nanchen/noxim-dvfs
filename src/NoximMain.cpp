@@ -32,6 +32,7 @@ int NoximGlobalParams::selection_strategy = DEFAULT_SELECTION_STRATEGY;
 float NoximGlobalParams::packet_injection_rate = DEFAULT_PACKET_INJECTION_RATE;
 float NoximGlobalParams::probability_of_retransmission = DEFAULT_PROBABILITY_OF_RETRANSMISSION;
 int NoximGlobalParams::traffic_distribution = DEFAULT_TRAFFIC_DISTRIBUTION;
+bool NoximGlobalParams::concurrent_traffic = true;
 char NoximGlobalParams::traffic_table_filename[128] = DEFAULT_TRAFFIC_TABLE_FILENAME;
 char NoximGlobalParams::dvfs_setting_filename[128] = DEFAULT_DVFS_SETTING_FILENAME;
 int NoximGlobalParams::simulation_time = DEFAULT_SIMULATION_TIME;
@@ -62,7 +63,7 @@ static void insertToGIdSet(unsigned long gid) {
 static void eraseFromGIdSet(unsigned long gid) {
 	gidSet->erase(gid);
 }
-int sc_main(int arg_num, char *arg_vet[])
+int sc_main1(int arg_num, char *arg_vet[])
 {
     // TEMP
     drained_volume = 0;
@@ -130,7 +131,7 @@ int sc_main(int arg_num, char *arg_vet[])
     cout << " ( " << sc_time_stamp().to_double() /
 	1000 << " cycles executed)" << endl;
 
-    cout << "Total flits: " << getNextFlitGId() -1 << endl;
+    cout << "Total generated flits: " << getNextFlitGId() -1 << endl;
     printGIdSet();
 
     // Show statistics

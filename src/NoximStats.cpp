@@ -21,7 +21,12 @@ void NoximStats::configure(const int node_id, const double _warm_up_time)
 void NoximStats::receivedFlit(const double arrival_time,
 			      const NoximFlit & flit)
 {
-    if (arrival_time - DEFAULT_RESET_TIME < warm_up_time)
+	if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+		cout << "NoximStats::receivedFlit: arrival_time: " << arrival_time
+			<< ", DEFAULT_RESET_TIME: " << DEFAULT_RESET_TIME
+			<< ", warm_up_time: " << warm_up_time << endl;
+
+	if (arrival_time - DEFAULT_RESET_TIME < warm_up_time)
 	return;
 
 //    cout << "NoximStats::receivedFlit" << endl;

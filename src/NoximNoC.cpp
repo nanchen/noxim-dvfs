@@ -186,16 +186,17 @@ void NoximNoC::buildMesh()
     if (strcmp(NoximGlobalParams::dvfs_setting_filename, ""))
 		NoximDVFSSetting::load(NoximGlobalParams::dvfs_setting_filename);
 
-	//Hard code dvfs setting here, setting will take effect at simulation time 0
-    NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
+//
+//	//Hard code dvfs setting here, setting will take effect at simulation time 0
+//    NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
 //    dvfs2->setDivision(100);
 //    dvfs2->setOff(true);
-
-	for(int i = 0; i<=getMaxId();i++){
-    	NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
+//
+//	for(int i = 0; i<=getMaxId();i++){
+//    	NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
  //   	dvfs->setDivision(100);
  //   	dvfs->setOff(true);
-    }
+ //   }
 
 }
 

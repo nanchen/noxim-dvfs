@@ -57,6 +57,7 @@ SC_MODULE(NoximTile)
     NoximRouter *r;								// Router instance
     NoximProcessingElement *pe;	                // Processing Element instance
     NoximDVFSUnit* dvfs;
+    sc_signal<bool> off;
 
     //-----------------id, coord, toString, neighbor------------------
     // neighbor tile
@@ -84,14 +85,17 @@ SC_MODULE(NoximTile)
     for (int i = 0; i < DIRECTIONS; i++)
     	nTile[i] = NULL;
 
-    // Divider
-    dvfs = new NoximDVFSUnit("DVFSUnit");
-    dvfs->clock(clock);
-    dvfs->reset(reset);
-
 	// Router pin assignments
 	r = new NoximRouter("Router");
+
+	// DVFS
+	dvfs = new NoximDVFSUnit("DVFSUnit");
+	dvfs->clock(clock);
+	dvfs->reset(reset);
 	r->dvfs = dvfs;
+	r->off(off);
+	dvfs->offSignal(off);
+
 	r->clock(clock);
 	r->reset(reset);
 	for (int i = 0; i < DIRECTIONS; i++) {

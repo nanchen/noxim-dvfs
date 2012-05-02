@@ -25,6 +25,7 @@ SC_MODULE(NoximDVFSUnit) {
 	// ---------divider-----------------
 	sc_in_clk clock;
 	sc_in<bool> reset;
+	sc_out<bool> offSignal;
 	bool off;
 	unsigned int division;
 	unsigned int preDivision;
@@ -110,6 +111,7 @@ public:
 	// divider
 	void setDivision(unsigned int division);
 	void setOff(bool off);
+	bool isNeighborOff(int dir);
 	bool isDutyCycle();
 	void setQueueTime(double qTime);
 
