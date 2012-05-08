@@ -63,7 +63,7 @@ static void insertToGIdSet(unsigned long gid) {
 static void eraseFromGIdSet(unsigned long gid) {
 	gidSet->erase(gid);
 }
-int sc_main1(int arg_num, char *arg_vet[])
+int sc_main(int arg_num, char *arg_vet[])
 {
     // TEMP
     drained_volume = 0;

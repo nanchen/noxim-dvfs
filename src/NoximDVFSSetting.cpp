@@ -21,7 +21,7 @@ bool NoximDVFSSetting::load(const char *fname) {
 		fin.getline(line, sizeof(line) - 1);
 
 		if (line[0] != '\0') {
-			if (line[0] != '%') {
+			if (line[0] != '%' && line[0] != '#') {
 
 				int x, y, id, timeStamp;
 				char action[10];

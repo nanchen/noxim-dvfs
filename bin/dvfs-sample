@@ -1,4 +1,11 @@
+#set tile (0,0) off @ cycle 100
 0, 0 100 off
+
+#set tile (1,1)'s frequency to 1/30 @ cycle 30
 1,1 10	div 30
+
+# set tile (0,1) off @ cycle 50
 0,1   50    off
+
+# resume tile(1,1) @ cycle 150
 1,1  150 on

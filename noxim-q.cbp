@@ -39,10 +39,14 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="src/DVFSAction.cpp" />
+		<Unit filename="src/DVFSAction.h" />
 		<Unit filename="src/NoximBuffer.cpp" />
 		<Unit filename="src/NoximBuffer.h" />
 		<Unit filename="src/NoximCmdLineParser.cpp" />
 		<Unit filename="src/NoximCmdLineParser.h" />
+		<Unit filename="src/NoximDVFSSetting.cpp" />
+		<Unit filename="src/NoximDVFSSetting.h" />
 		<Unit filename="src/NoximDVFSUnit.cpp" />
 		<Unit filename="src/NoximDVFSUnit.h" />
 		<Unit filename="src/NoximGlobalRoutingTable.cpp" />
