@@ -61,6 +61,7 @@ using namespace std;
 #define TRAFFIC_BIT_REVERSAL   5
 #define TRAFFIC_SHUFFLE        6
 #define TRAFFIC_BUTTERFLY      7
+#define TRAFFIC_PRE_DEFINED	   8
 #define INVALID_TRAFFIC       -1
 
 // Verbosity levels

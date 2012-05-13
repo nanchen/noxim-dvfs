@@ -119,7 +119,10 @@ bool NoximProcessingElement::canShot(NoximPacket & packet)
     bool shot;
     double threshold;
 
-    if (NoximGlobalParams::traffic_distribution != TRAFFIC_TABLE_BASED) {
+    if(NoximGlobalParams::traffic_distribution == TRAFFIC_PRE_DEFINED){
+
+    }
+    else if (NoximGlobalParams::traffic_distribution != TRAFFIC_TABLE_BASED) {
 	if (!transmittedAtPreviousCycle)
 	    threshold = NoximGlobalParams::packet_injection_rate;
 	else
