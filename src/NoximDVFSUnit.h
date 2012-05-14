@@ -57,6 +57,8 @@ SC_MODULE(NoximDVFSUnit) {
 	int getId() const;
 
 	char* toString() const;
+	char* toString(bool time) const;
+
 	char* toFullString() const;
 	char* qTableString() const;
 	//-----------------id, coord, toString, neighbor------------------
@@ -102,6 +104,7 @@ public:
 	void initQTable();
 
 	static void initQTablesForAll();
+	static void printAllQTables();
 	static int distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2);
 
 	//routing

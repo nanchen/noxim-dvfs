@@ -1,0 +1,10 @@
+---------------- Simulation average result---------------: 
+NoximSimulation Result:
+totalReceivedPackets 1468
+totalReceivedFlits 8849
+globalAverageDelay 13.636649999999998
+globalAverageThroughput 0.06491759999999999
+throughput 0.0614514
+maxDelay 96
+totalEnergy 1.8094899999999995E-5
+

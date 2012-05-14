@@ -131,10 +131,13 @@ int sc_main(int arg_num, char *arg_vet[])
     cout << " ( " << sc_time_stamp().to_double() /
 	1000 << " cycles executed)" << endl;
 
+
+    // Show statistics
     cout << "Total generated flits: " << getNextFlitGId() -1 << endl;
     printGIdSet();
 
-    // Show statistics
+    NoximDVFSUnit::printAllQTables();
+
     NoximGlobalStats gs(n);
     gs.showStats(std::cout, NoximGlobalParams::detailed);
 
