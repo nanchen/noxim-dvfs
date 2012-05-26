@@ -6,7 +6,7 @@
 #include "NoximDVFSUnit.h"
 #include <math.h>
 
-static const double ETA = 0.5;
+static const double ETA = 0.1;
 
 //int compareValues(double val1, double val2) {
 //	return (int) (val1 - val2);
@@ -18,23 +18,25 @@ static const double ETA = 0.5;
  */
 //int NoximDVFSUnit::routingQ(const int dstId) {
 int NoximDVFSUnit::routingQ(const NoximRouteData & routeData) {
+	const int dstId = routeData.dst_id;
+	const int dirIn = routeData.dir_in;
+	if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+		cout << toString() << ", routingQ to: " << dstId << ", dirIn = "
+				<< dirIn << endl;
+
+	// init bool values
 	for (int i = 0; i < DIRECTIONS + 1; i++)
 		canUpdateQTable[i] = true;
 
-	const int dstId = routeData.dst_id;
-	const int dirIn = routeData.dir_in;
-
-	if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
-		cout << toString() << ", routingQ to: " << dstId << endl;
-
-	int dir = getDirWithMinQValue(dstId);
+	// minQy(d)
+	int dirOut = getDirWithMinQValue(dstId);
 
 	// local
 	if (dstId == getId()) {
 		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
 			cout << toString() << "::routingQ dstId: " << dstId
 					<< " = local ID, return DIRECTION_LOCAL" << endl;
-		if (DIRECTION_LOCAL != dir)
+		if (DIRECTION_LOCAL != dirOut)
 			canUpdateQTable[dirIn] = false;
 		return DIRECTION_LOCAL;
 	}
@@ -44,13 +46,39 @@ int NoximDVFSUnit::routingQ(const NoximRouteData & routeData) {
 		if (nUnit[i] == NULL)
 			continue;
 		if (nUnit[i]->getId() == dstId) {
-			if (dir != i)
+			if (dirOut != i)
 				canUpdateQTable[dirIn] = false;
 			return i;
 		}
 	}
 
-	return dir;
+	if (dirOut == dirIn) {
+		double min = Q_INFINITY;
+		int ret = -1;
+
+		// search for min value
+		for (int dir = 0; dir < DIRECTIONS; dir++) {
+			if (nUnit[dir] == NULL)
+				continue;
+
+			if (dir == dirIn)
+				continue;
+
+			double qValue = getQValue(dstId, dir);
+			//		if (compareValues(qValue, min) < 0) {
+			if (qValue < min) {
+				min = qValue;
+				ret = dir;
+			}
+		}
+		canUpdateQTable[dirIn] == false;
+//		cout << toString() << ", dirIn: " << getDirStr(dirIn) << " != dirOut: "
+//				<< getDirStr(dirOut) << " reroute to " << getDirStr(ret)
+//				<< endl;
+		return ret;
+	}
+
+	return dirOut;
 }
 
 vector<int> NoximDVFSUnit::scheduleRoutingPath(const int dstId) {

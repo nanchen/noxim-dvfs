@@ -96,8 +96,8 @@ void NoximRouter::txProcess()
 		    route_data.dir_in = i;
 
 		    int o = route(route_data);
-		    if(o==j)
-		    	cout << "routed to the incoming port!" << endl;
+//		    if(o==i)
+//		    	cout << "routed to the incoming port!" << endl;
 
 		    const bool isAvailable = reservation_table.isAvailable(o);
 		    
