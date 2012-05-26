@@ -6,46 +6,67 @@
 #include "NoximDVFSUnit.h"
 #include <math.h>
 
-int compareValues(double val1, double val2) {
-	return (int) (val1 - val2);
-}
+static const double ETA = 0.5;
 
+//int compareValues(double val1, double val2) {
+//	return (int) (val1 - val2);
+//}
+
+// ====================================== Routing ==============================================
 /**
- * Determinstic routing function selecting the direction with min Q value
+ * Determinstic routing function
  */
-int NoximDVFSUnit::routingQ(const int dstId) {
+//int NoximDVFSUnit::routingQ(const int dstId) {
+int NoximDVFSUnit::routingQ(const NoximRouteData & routeData) {
+	for (int i = 0; i < DIRECTIONS + 1; i++)
+		canUpdateQTable[i] = true;
+
+	const int dstId = routeData.dst_id;
+	const int dirIn = routeData.dir_in;
+
 	if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
 		cout << toString() << ", routingQ to: " << dstId << endl;
+
+	int dir = getDirWithMinQValue(dstId);
 
 	// local
 	if (dstId == getId()) {
 		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
 			cout << toString() << "::routingQ dstId: " << dstId
 					<< " = local ID, return DIRECTION_LOCAL" << endl;
+		if (DIRECTION_LOCAL != dir)
+			canUpdateQTable[dirIn] = false;
 		return DIRECTION_LOCAL;
 	}
 
-	// try to route to a neighbor
+	// try to route to a neighbor first
 	for (int i = 0; i < DIRECTIONS; i++) {
 		if (nUnit[i] == NULL)
 			continue;
-		//TODO should return dir if dst is a neighbor?
 		if (nUnit[i]->getId() == dstId) {
+			if (dir != i)
+				canUpdateQTable[dirIn] = false;
 			return i;
 		}
 	}
-	int dir = getDirWithMinQValue(dstId);
+
 	return dir;
 }
 
 vector<int> NoximDVFSUnit::scheduleRoutingPath(const int dstId) {
+	NoximRouteData routeData;
+	routeData.current_id = getId();
+	routeData.src_id = getId();
+	routeData.dst_id = dstId;
+	routeData.dir_in = DIRECTION_LOCAL;
+
 	vector<int> ret;
 	int dir;
 	NoximDVFSUnit* routingUnit = this;
 	while (true) {
 		if (routingUnit->getId() == dstId)
 			break;
-		dir = routingUnit->routingQ(dstId);
+		dir = routingUnit->routingQ(routeData);
 		ret.push_back(dir);
 		routingUnit = routingUnit->nUnit[dir];
 	}
@@ -56,6 +77,7 @@ int NoximDVFSUnit::getDirWithMinQValue(int dstId) {
 	if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
 		cout << toString() << "::getDirWithMinQValue dstId = " << dstId
 				<< "\n\tq table = \n" << qTableString() << endl;
+
 	if (dstId == getId()) {
 		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
 			cout << toString() << "::getDirWithMinQValue dstId: " << dstId
@@ -71,11 +93,6 @@ int NoximDVFSUnit::getDirWithMinQValue(int dstId) {
 		if (nUnit[dir] == NULL)
 			continue;
 
-		//		//TODO should return dir if dst is a neighbor?
-		//		if (nUnit[dir]->getId() == dstId) {
-		//			return dir;
-		//		}
-
 		double qValue = getQValue(dstId, dir);
 		//		if (compareValues(qValue, min) < 0) {
 		if (qValue < min) {
@@ -86,11 +103,15 @@ int NoximDVFSUnit::getDirWithMinQValue(int dstId) {
 	return ret;
 }
 
+// ============================== Common ==================================================
 double NoximDVFSUnit::getQValue(int dstId, int yDir) {
-	if (yDir == DIRECTION_LOCAL)
-		return 0.0;
-	if (dstId == getId())
-		return 0.0;
+	//TODO reconsider those 0.0!!!!!
+	assert(dstId != getId());
+	assert(yDir != DIRECTION_LOCAL);
+	//	if (yDir == DIRECTION_LOCAL)
+	//		return 0.0;
+	//	if (dstId == getId())
+	//		return 0.0;
 	return qTable[yDir][dstId];
 }
 
@@ -104,6 +125,22 @@ int NoximDVFSUnit::distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2) {
 	return hammingDistance(dvfs1->getCoord(), dvfs2->getCoord());
 }
 
+// ======================================= Q value manipulation ========================================
+
+void NoximDVFSUnit::setQTableForANeighbor(int nDir, double qValue) {
+	const int MAX_ID = getMaxId();
+	// neighbor exists
+	if (nUnit[nDir]) {
+		for (int i = 0; i <= MAX_ID; i++) {
+			//TODO should avoid the case when getId() == y.id?
+			if (getId() == i)
+				continue;
+			setQValue(i, nDir, qValue);
+		}
+	}
+}
+
+// --------------------------------- init----------------------------
 void NoximDVFSUnit::initQTableForANeighbor(int nDir) {
 	// max id
 	const int MAX_ID = getMaxId();
@@ -125,12 +162,12 @@ void NoximDVFSUnit::initQTableForANeighbor(int nDir) {
 }
 
 void NoximDVFSUnit::initQTable() {
-//	cout << "init q table for " << toFullString() << endl;
+	//	cout << "init q table for " << toFullString() << endl;
 
 	for (int dir = 0; dir < DIRECTIONS; dir++) {
 		initQTableForANeighbor(dir);
 	}
-//	cout << qTableString() << endl;
+	//	cout << qTableString() << endl;
 }
 
 void NoximDVFSUnit::initQTablesForAll() {
@@ -146,19 +183,6 @@ void NoximDVFSUnit::printAllQTables() {
 	for (int i = 0; i <= MAX_ID; i++) {
 		NoximDVFSUnit* dvfs = NoximDVFSUnit::getDVFS(i);
 		cout << dvfs->qTableString() << endl;
-	}
-}
-
-void NoximDVFSUnit::setQTableForANeighbor(int nDir, double qValue) {
-	const int MAX_ID = getMaxId();
-	// neighbor exists
-	if (nUnit[nDir]) {
-		for (int i = 0; i <= MAX_ID; i++) {
-			//TODO should avoid the case when getId() == y.id?
-			if (getId() == i)
-				continue;
-			setQValue(i, nDir, qValue);
-		}
 	}
 }
 
@@ -205,99 +229,338 @@ void NoximDVFSUnit::notifyAllNeighbors(int event) {
 	}
 }
 
-void NoximDVFSUnit::notifyNeighborWithRegularFlitDelivery(int neighborDir,
-		int dstId) {
-	//Q value through neighbor with minimal q value: ty = Qy(d, minQy(d))
+// ----------------------------- Regular delivery ------------------------------------
+//void NoximDVFSUnit::notifyNeighborWithRegularFlitDelivery(int neighborDir,
+//		int dstId) {
+//
+//	//Q value through neighbor with minimal q value: ty = Qy(d, minQy(d))
+//	int dirOfMinQy = getDirWithMinQValue(dstId);
+//	double ty = 1.0;
+//	if (dirOfMinQy == DIRECTION_LOCAL)
+//		ty = queueTime;
+//	else
+//		ty = getQValue(dstId, dirOfMinQy);
+//	if (ty >= Q_INFINITY) {
+//		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//			cout << toString()
+//					<< ": notify neighbor: ty is infinity, not notify sender to update q value, return! "
+//					<< endl;
+//		return;
+//	}
+//
+//	// update sender's q value
+//	NoximDVFSUnit* n = nUnit[neighborDir];
+//	if (n) {
+//		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//			cout << toString() << ": notify neighbor: " << getDirStr(
+//					neighborDir) << ", for regular delivery"
+//					<< ", dirOfMinQy = " << getDirStr(dirOfMinQy) << ", ty = "
+//					<< ty << endl;
+//		n->setQTableForRegularFlitDelivery(getOppositDir(neighborDir), dstId,
+//				ty);
+//	}
+//}
 
-	//	//TODO this logic should be in sendeing router
-	//	const int routedOutputPort = routingQ(dstId);
-	//	int dirOfMinQy = getDirWithMinQValue(dstId);
-	//	if (dirOfMinQy != routedOutputPort) {
-	//		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-	//			cout << toString()
-	//					<< ": notify neighbor: dirOfMinQy != outputPort -> there was a special case in routing, return! "
-	//					<< endl;
-	//		return;
-	//	}
-
-	int dirOfMinQy = getDirWithMinQValue(dstId);
-	double ty = dirOfMinQy == DIRECTION_LOCAL? 0 : getQValue(dstId, dirOfMinQy);
-
-	if (ty == Q_INFINITY) {
+void NoximDVFSUnit::updateQTable(int dirIn) {
+	if (canUpdateQTable[dirIn] == false) {
 		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-			cout << toString() << ": notify neighbor: ty is infinity return! "
+			cout << toString() << ": updateQTable: canUpdateQTable[dirIn] == "
+					<< canUpdateQTable[dirIn]
+					<< " -> there was a special case in routing, return! "
 					<< endl;
 		return;
 	}
-	NoximDVFSUnit* n = nUnit[neighborDir];
-	if (n) {
-		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-			cout << toString() << ": notify neighbor: " << getDirStr(
-					neighborDir) << ", for regular delivery"
-					<< ", dirOfMinQy = " << getDirStr(dirOfMinQy) << ", ty = "
-					<< ty << endl;
-		n->setQTableForRegularFlitDelivery(getOppositDir(neighborDir), dstId,
-				ty);
-	}
-}
+	const int MAX_ID = getMaxId();
+	for (int i = 0; i < DIRECTIONS; i++) {
+		NoximDVFSUnit* neighbor = nUnit[i];
+		// neighbor exists
+		if (neighbor) {
+			for (int dstId = 0; dstId <= MAX_ID; dstId++) {
+				if (getId() == dstId)
+					continue;
 
-void NoximDVFSUnit::setQTableForRegularFlitDelivery(int nDir, int dstId,
-		double ty) {
+				// check special case
+				//				NoximRouteData routeData;
+				//				routeData.current_id = getId();
+				//				routeData.src_id = getId();
+				//				routeData.dst_id = dstId;
+				//				routeData.dir_in = DIRECTION_LOCAL;
+				//				const int routedOutputPort = routingQ(routeData);
+				//				int dirOfMinQy = getDirWithMinQValue(dstId);
+				//				if (dirOfMinQy != routedOutputPort) {
+				//					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+				//						cout << toString()
+				//								<< ": setQTableForRegularFlitDelivery: dirOfMinQy ("
+				//								<< getDirStr(dirOfMinQy) << ") != outputPort "
+				//								<< getDirStr(routedOutputPort)
+				//								<< " -> there was a special case in routing, return! "
+				//								<< endl;
+				//					continue;
+				//				}
 
-	// check special case
-	const int routedOutputPort = routingQ(dstId);
-	int dirOfMinQy = getDirWithMinQValue(dstId);
-	if (dirOfMinQy != routedOutputPort) {
-		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-			cout << toString()
-					<< ": set q table for regular delivery: dirOfMinQy != outputPort -> there was a special case in routing, return! "
-					<< endl;
-		return;
-	}
 
-	// neighbor exists
-	if (nUnit[nDir]) {
+				// Q'x(d,y) = Qx(d,y) + deltaQx(d,y)
+				// deltaQx(d,y) = eta * (qx + 1 + ty - Qx(d,y))
+				const double currentQValue = getQValue(dstId, i);
+				// not update infinity value
+				if (currentQValue >= Q_INFINITY) {
+					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
+						cout << toString()
+								<< ": setQTableForRegularFlitDelivery current q vlaue >= infinity, return!"
+								<< endl;
+					}
+					return;
+				}
 
-		// Q'x(d,y) = Qx(d,y) + deltaQx(d,y)
-		// deltaQx(d,y) = eta * (qx + 1 + ty - Qx(d,y))
-		const double currentQValue = getQValue(dstId, nDir);
-		// not update infinity value
-		if (currentQValue >= Q_INFINITY) {
-			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-				cout << toString()
-						<< ": setQTableForRegularFlitDelivery current q vlaue > infinity, return!"
-						<< endl;
+				int neighborDirOfMinQy = neighbor->getDirWithMinQValue(dstId);
+				double ty;
+				if (neighborDirOfMinQy == DIRECTION_LOCAL)
+					ty = neighbor->getQueueTime();
+				else
+					ty = neighbor->getQValue(dstId, neighborDirOfMinQy);
+
+				if (ty >= Q_INFINITY) {
+					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+						cout << toString()
+								<< " ty is infinity, dont't update this q value, continue "
+								<< endl;
+					continue;
+				}
+
+				//		const double delta = ETA * (queueTime + 1 + ty - currentQValue);
+				const double delta = ETA
+						* (getQueueTime() + ty - currentQValue);
+				if (delta > 0)
+					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+						cout << toString()
+								<< ": setQTableForRegularFlitDelivery: delta = "
+								<< delta << " > 0: " << "qx = " << queueTime
+								<< ", ty = " << ty << ", currentQValue = "
+								<< currentQValue << endl;
+
+				const double newQValue = currentQValue + delta;
+
+				// print calculation
+				if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
+					cout << toString()
+							<< ": setQTableForRegularFlitDelivery:\n\tQ'x(d,y) = Qx(d,y) + DeltaQx(d,y) where Qx(d,y) = Qx("
+							<< dstId << ", " << getDirStr(i) << ") = "
+							<< currentQValue
+							<< "\n\t  Delta = ETA * (qx + ty - Qx(d,y)\n\t\t= "
+							<< ETA << " * (" << queueTime << " + " << ty
+							<< " - " << currentQValue << ")\n\t\t= " << delta
+							<< "\n\t  Q'x(d,y) = " << newQValue << endl;
+				setQValue(dstId, i, newQValue);
 			}
-			return;
 		}
-		const double ETA = 0.5;
-		const double delta = ETA * (queueTime + 1 + ty - currentQValue);
-		const double newQValue = currentQValue + delta;
-
-		// set q table
-		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
-			cout << qTableString()
-					<< "\n \t\t\t\t\t|\n\t\t\t\t\t|\n\t\t\t\t\tV\n" << endl;
-		setQValue(dstId, nDir, newQValue);
-		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
-			cout << qTableString() << endl;
-
-		// print calculation
-		if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
-			cout << toString()
-					<< "\n\tQ'x(d,y) = Qx(d,y) + DeltaQx(d,y) where Qx(d,y) = Qx("
-					<< dstId << ", " << getDirStr(nDir) << ") = "
-					<< currentQValue
-					<< "\n\t  Delta = ETA * (qx + 1 + ty - Qx(d,y)\n\t\t= "
-					<< ETA << " * (" << queueTime << " + 1 + " << ty << " - "
-					<< currentQValue << ")\n\t\t= " << delta
-					<< "\n\t  Q'x(d,y) = " << newQValue << endl;
 	}
 }
+
+//void NoximDVFSUnit::setQTableForRegularFlitDelivery(int nDir, int dstId,
+//		double ty) {
+//	//	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//	//		cout << toString() << ": setQTableForRegularFlitDelivery: nDir = "
+//	//				<< getDirStr(nDir) << ", dstId = " << dstId << ", ty = " << ty
+//	//				<< endl;
+//
+//	//	// check special case
+//	//	const int routedOutputPort = routingQ(dstId);
+//	//	int dirOfMinQy = getDirWithMinQValue(dstId);
+//	//	if (dirOfMinQy != routedOutputPort) {
+//	//		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//	//			cout << toString()
+//	//					<< ": setQTableForRegularFlitDelivery: dirOfMinQy ("
+//	//					<< getDirStr(dirOfMinQy) << ") != outputPort "
+//	//					<< getDirStr(routedOutputPort)
+//	//					<< " -> there was a special case in routing, return! "
+//	//					<< endl;
+//	//		return;
+//	//	}
+//
+//	const int MAX_ID = getMaxId();
+//	for (int i = 0; i < DIRECTIONS; i++) {
+//		NoximDVFSUnit* neighbor = nUnit[i];
+//		// neighbor exists
+//		if (neighbor) {
+//			for (dstId = 0; dstId <= MAX_ID; dstId++) {
+//				if (getId() == dstId)
+//					continue;
+//
+//				// check special case
+//				NoximRouteData routeData;
+//				routeData.current_id = getId();
+//				routeData.src_id = getId();
+//				routeData.dst_id = dstId;
+//				routeData.dir_in = DIRECTION_LOCAL;
+//				const int routedOutputPort = routingQ(routeData);
+//				int dirOfMinQy = getDirWithMinQValue(dstId);
+//				if (dirOfMinQy != routedOutputPort) {
+//					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//						cout << toString()
+//								<< ": setQTableForRegularFlitDelivery: dirOfMinQy ("
+//								<< getDirStr(dirOfMinQy) << ") != outputPort "
+//								<< getDirStr(routedOutputPort)
+//								<< " -> there was a special case in routing, return! "
+//								<< endl;
+//					continue;
+//				}
+//
+//				// Q'x(d,y) = Qx(d,y) + deltaQx(d,y)
+//				// deltaQx(d,y) = eta * (qx + 1 + ty - Qx(d,y))
+//				const double currentQValue = getQValue(dstId, i);
+//				// not update infinity value
+//				if (currentQValue >= Q_INFINITY) {
+//					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
+//						cout << toString()
+//								<< ": setQTableForRegularFlitDelivery current q vlaue >= infinity, return!"
+//								<< endl;
+//					}
+//					return;
+//				}
+//
+//				int neighborDirOfMinQy = neighbor->getDirWithMinQValue(dstId);
+//				double ty;
+//				if (neighborDirOfMinQy == DIRECTION_LOCAL)
+//					ty = neighbor->getQueueTime();
+//				else
+//					ty = neighbor->getQValue(dstId, neighborDirOfMinQy);
+//
+//				//		const double delta = ETA * (queueTime + 1 + ty - currentQValue);
+//				const double delta = ETA
+//						* (getQueueTime() + ty - currentQValue);
+//				if (delta > 0)
+//					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//						cout << toString()
+//								<< ": setQTableForRegularFlitDelivery: delta = "
+//								<< delta << " > 0: " << "qx = " << queueTime
+//								<< ", ty = " << ty << ", currentQValue = "
+//								<< currentQValue << endl;
+//
+//				const double newQValue = currentQValue + delta;
+//
+//				// print calculation
+//				if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
+//					cout << toString()
+//							<< ": setQTableForRegularFlitDelivery:\n\tQ'x(d,y) = Qx(d,y) + DeltaQx(d,y) where Qx(d,y) = Qx("
+//							<< dstId << ", " << getDirStr(i) << ") = "
+//							<< currentQValue
+//							<< "\n\t  Delta = ETA * (qx + ty - Qx(d,y)\n\t\t= "
+//							<< ETA << " * (" << queueTime << " + " << ty
+//							<< " - " << currentQValue << ")\n\t\t= " << delta
+//							<< "\n\t  Q'x(d,y) = " << newQValue << endl;
+//				//		if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
+//				//			cout << toString()
+//				//					<< "\n\tQ'x(d,y) = Qx(d,y) + DeltaQx(d,y) where Qx(d,y) = Qx("
+//				//					<< dstId << ", " << getDirStr(nDir) << ") = "
+//				//					<< currentQValue
+//				//					<< "\n\t  Delta = ETA * (qx + 1 + ty - Qx(d,y)\n\t\t= "
+//				//					<< ETA << " * (" << queueTime << " + 1 + " << ty << " - "
+//				//					<< currentQValue << ")\n\t\t= " << delta
+//				//					<< "\n\t  Q'x(d,y) = " << newQValue << endl;
+//
+//				// set q table
+//				//				if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+//				//					cout << qTableString()
+//				//							<< "\n \t\t\t\t\t|\n\t\t\t\t\t|\n\t\t\t\t\tV\n"
+//				//							<< endl;
+//				setQValue(dstId, i, newQValue);
+//				//				if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+//				//					cout << qTableString() << endl;
+//			}
+//		}
+//	}
+//
+//	//	// neighbor exists
+//	//	if (nUnit[nDir]) {
+//	//
+//	//		// Q'x(d,y) = Qx(d,y) + deltaQx(d,y)
+//	//		// deltaQx(d,y) = eta * (qx + 1 + ty - Qx(d,y))
+//	//		const double currentQValue = getQValue(dstId, nDir);
+//	//		// not update infinity value
+//	//		if (currentQValue >= Q_INFINITY) {
+//	//			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
+//	//				cout << toString()
+//	//						<< ": setQTableForRegularFlitDelivery current q vlaue >= infinity, return!"
+//	//						<< endl;
+//	//			}
+//	//			return;
+//	//		}
+//	//
+//	//		//		const double delta = ETA * (queueTime + 1 + ty - currentQValue);
+//	//		const double delta = ETA * (queueTime + ty - currentQValue);
+//	//		if (delta > 0)
+//	//			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//	//				cout << toString()
+//	//						<< ": setQTableForRegularFlitDelivery: delta = "
+//	//						<< delta << " > 0: " << "qx = " << queueTime
+//	//						<< ", ty = " << ty << ", currentQValue = "
+//	//						<< currentQValue << endl;
+//	//
+//	//		const double newQValue = currentQValue + delta;
+//	//
+//	//		// print calculation
+//	//		if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
+//	//			cout << toString()
+//	//					<< ": setQTableForRegularFlitDelivery:\n\tQ'x(d,y) = Qx(d,y) + DeltaQx(d,y) where Qx(d,y) = Qx("
+//	//					<< dstId << ", " << getDirStr(nDir) << ") = "
+//	//					<< currentQValue
+//	//					<< "\n\t  Delta = ETA * (qx + ty - Qx(d,y)\n\t\t= " << ETA
+//	//					<< " * (" << queueTime << " + " << ty << " - "
+//	//					<< currentQValue << ")\n\t\t= " << delta
+//	//					<< "\n\t  Q'x(d,y) = " << newQValue << endl;
+//	//		//		if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
+//	//		//			cout << toString()
+//	//		//					<< "\n\tQ'x(d,y) = Qx(d,y) + DeltaQx(d,y) where Qx(d,y) = Qx("
+//	//		//					<< dstId << ", " << getDirStr(nDir) << ") = "
+//	//		//					<< currentQValue
+//	//		//					<< "\n\t  Delta = ETA * (qx + 1 + ty - Qx(d,y)\n\t\t= "
+//	//		//					<< ETA << " * (" << queueTime << " + 1 + " << ty << " - "
+//	//		//					<< currentQValue << ")\n\t\t= " << delta
+//	//		//					<< "\n\t  Q'x(d,y) = " << newQValue << endl;
+//	//
+//	//		// set q table
+//	//		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+//	//			cout << qTableString()
+//	//					<< "\n \t\t\t\t\t|\n\t\t\t\t\t|\n\t\t\t\t\tV\n" << endl;
+//	//		setQValue(dstId, nDir, newQValue);
+//	//		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
+//	//			cout << qTableString() << endl;
+//	//	}
+//}
 
 void NoximDVFSUnit::setQueueTime(double qTime) {
+	this->prevQueueTime = this->queueTime;
 	this->queueTime = qTime;
-	//	cout << "queueTime = " << this->queueTime << endl;
+	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+		cout << toString() << ": setQueueTime: " << prevQueueTime << " -> "
+				<< this->queueTime << endl;
+	//	updateQTableWithQueueTimeChange();
+}
+
+double NoximDVFSUnit::getQueueTime() {
+	return this->queueTime;
+}
+
+void NoximDVFSUnit::updateQTableWithQueueTimeChange(int sendToDstId,
+		int sendToDir) {
+	if (this->queueTime == this->prevQueueTime)
+		return;
+
+	const double delta = ETA * (queueTime - prevQueueTime);
+	const int MAX_ID = getMaxId();
+	for (int j = 0; j < DIRECTIONS; j++) {
+		if (nUnit[j]) {
+			for (int i = 0; i <= MAX_ID; i++) {
+				if (getId() == i)
+					continue;
+				//				if(i == sendToDstId && j == sendToDir)
+				//					continue;
+				double preValue = getQValue(i, j);
+				double qValue = preValue + delta;
+				setQValue(i, j, qValue);
+			}
+		}
+	}
 }
 
 // ---------------------DVFS unit array--------------------------------
@@ -348,7 +611,7 @@ char* NoximDVFSUnit::toString() const {
 
 char* NoximDVFSUnit::toString(bool time) const {
 	char* ret = (char*) malloc(100 * sizeof(char));
-	sprintf(ret, "%sDVFS[%3d]%s", time?currentTimeStr():"", id,
+	sprintf(ret, "%sDVFS[%3d]%s", time ? currentTimeStr() : "", id,
 			coord.toString());
 	return ret;
 }
@@ -415,15 +678,47 @@ bool NoximDVFSUnit::isDutyCycle() {
 }
 
 void NoximDVFSUnit::incrementDivisionCounter() {
-//	if (divisionCount != 0 && divisionCount % 1000 == 0)
-//		cout << "NoximDVFSUnit.increment division counter, divisionCount = "
-//				<< divisionCount << endl;
+	//	if (divisionCount != 0 && divisionCount % 1000 == 0)
+	//		cout << "NoximDVFSUnit.increment division counter, divisionCount = "
+	//				<< divisionCount << endl;
 	if (reset.read())
 		divisionCount = 0;
 	else
 		divisionCount++;
 }
 
+void NoximDVFSUnit::setDivision(unsigned int division) {
+	this->preDivision = this->division;
+	this->division = division;
+	this->notifyAllNeighbors(Q_NOTIFY_FREQ_SCALING);
+}
+
+void NoximDVFSUnit::setOff(bool off) {
+	//TODO should power resuming reset division to "1" ?
+	// turn off
+	if (this->off == false && off == true) {
+		this->off = off;
+		this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
+		offSignal.write(1);
+		// turn on
+	} else if (this->off == true && off == false) {
+		this->off = off;
+		this->notifyAllNeighbors(Q_NOTIFY_INIT);
+		this->division = 1; // reset division to initial value
+		offSignal.write(0);
+	}
+}
+
+bool NoximDVFSUnit::isNeighborOff(int dir) {
+	if (DIRECTION_LOCAL == dir)
+		return off;
+	NoximDVFSUnit* neighbor = nUnit[dir];
+	assert(neighbor != NULL);
+	return neighbor->off;
+}
+// ---------END--------- divider----------------------------------------
+
+//============================= dvfs setting ======================================
 void NoximDVFSUnit::checkDVFSActions() {
 	const int relativeTime = floor(currentTime())
 			- NoximGlobalParams::stats_warm_up_time;
@@ -458,37 +753,3 @@ void NoximDVFSUnit::executeAction(DVFSAction action) {
 	else
 		assert(false);
 }
-
-void NoximDVFSUnit::setDivision(unsigned int division) {
-	this->preDivision = this->division;
-	this->division = division;
-	this->notifyAllNeighbors(Q_NOTIFY_FREQ_SCALING);
-}
-
-void NoximDVFSUnit::setOff(bool off) {
-	//TODO should power resuming reset division to "1" ?
-	// turn off
-	if (this->off == false && off == true) {
-		this->off = off;
-		this->notifyAllNeighbors(Q_NOTIFY_INFINITY);
-		offSignal.write(1);
-		// turn on
-	} else if (this->off == true && off == false) {
-		this->off = off;
-		this->notifyAllNeighbors(Q_NOTIFY_INIT);
-		this->division = 1; // reset division to initial value
-		offSignal.write(0);
-	}
-}
-
-bool NoximDVFSUnit::isNeighborOff(int dir) {
-	if (DIRECTION_LOCAL == dir)
-		return off;
-	NoximDVFSUnit* neighbor = nUnit[dir];
-	assert(neighbor!=NULL);
-	//	if (neighbor == NULL)
-//		return true;
-//	else
-		return neighbor->off;
-}
-// ---------END--------- divider----------------------------------------

@@ -63,7 +63,7 @@ SC_MODULE(NoximRouter)
 
     // dvfs
     NoximDVFSUnit* dvfs;
-    double flitReceivedTime;
+    double flitReceivedTime[DIRECTIONS+1];
     void setDVFS(NoximDVFSUnit* aDVFS);
     sc_in<bool> off;
     void switchProcess();
@@ -131,7 +131,7 @@ SC_MODULE(NoximRouter)
 		     const NoximRouteData & route_data);
 
     // routing functions
-    vector<int> routingQ(const NoximCoord & destination);
+//    vector<int> routingQ(const NoximCoord & destination);
 
     vector < int >routingXY(const NoximCoord & current,
 			    const NoximCoord & destination);

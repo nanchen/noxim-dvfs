@@ -11,8 +11,8 @@ rm working/*
 for ((  i = 1 ;  i <= $1;  i++  ))
 do
   echo "Simulating time $i"
-  ./noxim -dimx $2 -dimy $3 -buffer 500 >> working/q.log
-  ./noxim -dimx $2 -dimy $3 -routing xy -buffer 500 >> working/xy.log
+  ./noxim -dimx $2 -dimy $3 -buffer 100 >> working/q.log
+  ./noxim-20100324 -dimx $2 -dimy $3 -routing xy -buffer 100 >> working/xy.log
 done
 
 # analyse log

@@ -48,12 +48,13 @@ void NoximRouter::rxProcess()
 		buffer[i].Push(received_flit);
 
 		// ------------------------- DVFS --------------------------------------
-		flitReceivedTime = sc_time_stamp().to_double() / 1000;
+		flitReceivedTime[i] = sc_time_stamp().to_double() / 1000;
 
-		//TODO think about this logic: don't notify when received from PE	
-		if(i != DIRECTION_LOCAL){
-			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
-		}
+//		//TODO think about this logic: don't notify when received from PE
+//		if(i != DIRECTION_LOCAL){
+//			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
+//		}
+		// ---------------------------------------------------------------------
 
 		// Negate the old value for Alternating Bit Protocol (ABP)
 		current_level_rx[i] = 1 - current_level_rx[i];
@@ -95,6 +96,9 @@ void NoximRouter::txProcess()
 		    route_data.dir_in = i;
 
 		    int o = route(route_data);
+		    if(o==j)
+		    	cout << "routed to the incoming port!" << endl;
+
 		    const bool isAvailable = reservation_table.isAvailable(o);
 		    
 			// log
@@ -158,13 +162,16 @@ void NoximRouter::txProcess()
 
 			// DVFS  TODO is this condition right? (for any destination, set queue time)
 			double qTime = sc_time_stamp().to_double() / 1000
-						- flitReceivedTime;
+						- flitReceivedTime[i];
+			dvfs->setQueueTime(qTime);
+			dvfs->updateQTable(i);
+//			dvfs->updateQTableWithQueueTimeChange(flit.dst_id, o);
+
 			if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
 				cout << toString() << "flitReceivedTime = "
-					<< flitReceivedTime << ", currentTime = "
+					<< flitReceivedTime[i] << ", currentTime = "
 					<< sc_time_stamp().to_double() / 1000
 					<< ", qTime = " << qTime << endl;
-			dvfs->setQueueTime(qTime);
 			// Update stats
 			if (o == DIRECTION_LOCAL) {
 			    stats.receivedFlit(sc_time_stamp().
@@ -245,7 +252,7 @@ vector <int> NoximRouter::routingFunction(const NoximRouteData & route_data)
     switch (NoximGlobalParams::routing_algorithm) {
 	case ROUTING_Q:
 
-		dirs.push_back(dvfs->routingQ(route_data.dst_id));
+		dirs.push_back(dvfs->routingQ(route_data));
 		return dirs;
 
     case ROUTING_XY:

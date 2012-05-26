@@ -20,7 +20,7 @@ SC_MODULE(NoximDVFSUnit) {
 	const static int Q_NOTIFY_INFINITY = 1;
 	const static int Q_NOTIFY_FREQ_SCALING = 2;
 
-	const static double Q_INFINITY = 1000000000.0;  // 1 billon
+	const static double Q_INFINITY = 1000000000.0; // 1 billon
 
 	// ---------divider-----------------
 	sc_in_clk clock;
@@ -61,6 +61,11 @@ SC_MODULE(NoximDVFSUnit) {
 
 	char* toFullString() const;
 	char* qTableString() const;
+
+	// routing
+	bool canUpdateQTable[DIRECTIONS+1];
+
+
 	//-----------------id, coord, toString, neighbor------------------
 
 	SC_CTOR(NoximDVFSUnit) {
@@ -73,21 +78,21 @@ SC_MODULE(NoximDVFSUnit) {
 		sensitive << reset;
 		sensitive << clock.neg();
 
-		SC_METHOD(checkDVFSActions);
+		SC_METHOD( checkDVFSActions);
 		sensitive << reset;
 		sensitive << clock.pos();
 
-
 		queueTime = 1.0;
+		prevQueueTime = 1.0;
 
 		// init neighbor units
 		for (int i = 0; i < DIRECTIONS; i++)
-			nUnit[i] = NULL;
+		nUnit[i] = NULL;
 
 		// init q table
 		for(int dir=0;dir <DIRECTIONS;dir++)
-			for(int destination =0; destination < MAX_STATIC_DIM * MAX_STATIC_DIM; destination ++)
-				setQValue(destination, dir, Q_INFINITY);
+		for(int destination =0; destination < MAX_STATIC_DIM * MAX_STATIC_DIM; destination ++)
+		setQValue(destination, dir, Q_INFINITY);
 	}
 
 public:
@@ -95,11 +100,12 @@ public:
 	double getQValue(int dstId, int yDir);
 	void setQValue(int dstId, int yDir, double qValue);
 	void notifyAllNeighbors(int event);
-	void notifyNeighborWithRegularFlitDelivery(int neighborDir, int dstId);
+//	void notifyNeighborWithRegularFlitDelivery(int neighborDir, int dstId);
 	void setQTableForANeighbor(int nDir, double qValue);
 	void setQTableForANeighborOnFreqScaling(int nDir, double queueTimeY,
 			unsigned int newDivision, unsigned int prevDivision);
-	void setQTableForRegularFlitDelivery(int nDir, int dstId, double ty);
+//	void setQTableForRegularFlitDelivery(int nDir, int dstId, double ty);
+	void updateQTable(int dirIn);
 	void initQTableForANeighbor(int nDir);
 	void initQTable();
 
@@ -108,7 +114,7 @@ public:
 	static int distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2);
 
 	//routing
-	int routingQ(const int dstId);
+	int routingQ(const NoximRouteData & routeData);
 	vector<int> scheduleRoutingPath(const int dstId);
 
 	// divider
@@ -117,12 +123,15 @@ public:
 	bool isNeighborOff(int dir);
 	bool isDutyCycle();
 	void setQueueTime(double qTime);
+	double getQueueTime();
+	void updateQTableWithQueueTimeChange(int sendToDstId, int sendToDir);
 
 	vector<DVFSAction> actions;
 private:
 	double qTable[DIRECTIONS][MAX_STATIC_DIM * MAX_STATIC_DIM];
 	unsigned int divisionCount;
 	double queueTime;
+	double prevQueueTime;
 };
 #endif
 
