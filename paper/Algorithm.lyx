@@ -119,7 +119,7 @@ Variables and functions:
 \end_layout
 
 \begin_layout Plain Layout
-\begin_inset Formula $t_{y}=Q_{y}(d,minQ_{y}(d))$
+\begin_inset Formula $t_{y}=(d==y)?q_{y}:Q_{y}(d,minQ_{y}(d))$
 \end_inset
 
 
@@ -491,7 +491,7 @@ update Q-table with
 \begin_inset Formula $\quad$
 \end_inset
 
-send feedback signal with q-table value to node 
+send feedback signal with entire q-table to node 
 \begin_inset Formula $x$
 \end_inset
 
@@ -612,7 +612,7 @@ route
 \begin_inset Formula $minQ_{x}(d)==input$
 \end_inset
 
-) 
+ ) 
 \begin_inset Formula $then$
 \end_inset
 
@@ -631,7 +631,7 @@ route
 \begin_inset Formula $minQ_{x}(d)$
 \end_inset
 
- among the directions (
+ among the directions except input (
 \family roman
 \series medium
 \shape up

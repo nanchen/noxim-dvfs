@@ -6,7 +6,7 @@
 #include "NoximDVFSUnit.h"
 #include <math.h>
 
-static const double ETA = 0.1;
+static const double ETA = 0.5;
 
 //int compareValues(double val1, double val2) {
 //	return (int) (val1 - val2);
