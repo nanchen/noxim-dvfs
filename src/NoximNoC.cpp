@@ -166,7 +166,6 @@ void NoximNoC::buildMesh()
 	for (int y = 0; y < NoximGlobalParams::mesh_dim_y; y++)
 		for (int x = 0; x < NoximGlobalParams::mesh_dim_x; x++) {
 			NoximTile* tile = t[x][y];
-//			NoximDVFSUnit* dvfs = tile->r->dvfs;
 			if (x > 0) {
 				tile->setNTile(DIRECTION_WEST, t[x - 1][y]);
 			}
@@ -181,7 +180,7 @@ void NoximNoC::buildMesh()
 			}
 		}
 
-	if (NoximGlobalParams::routing_algorithm == ROUTING_Q) {
+	if (NoximGlobalParams::routing_algorithm == ROUTING_Q || NoximGlobalParams::routing_algorithm == ROUTING_NON_DET_Q) {
 		NoximDVFSUnit::initQTablesForAll();
 		NoximDVFSUnit::printAllQTables();
 	}

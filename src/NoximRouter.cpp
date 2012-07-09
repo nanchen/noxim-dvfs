@@ -49,11 +49,6 @@ void NoximRouter::rxProcess()
 
 		// ------------------------- DVFS --------------------------------------
 		flitReceivedTime[i] = sc_time_stamp().to_double() / 1000;
-
-//		//TODO think about this logic: don't notify when received from PE
-//		if(i != DIRECTION_LOCAL){
-//			dvfs->notifyNeighborWithRegularFlitDelivery(i, received_flit.dst_id);
-//		}
 		// ---------------------------------------------------------------------
 
 		// Negate the old value for Alternating Bit Protocol (ABP)
@@ -80,6 +75,8 @@ void NoximRouter::txProcess()
 	    current_level_tx[i] = 0;
 	}
     } else {
+    NoximRouteData routeDataArray[DIRECTIONS+1];
+
 	// 1st phase: Reservation
 	for (int j = 0; j < DIRECTIONS + 1; j++) {
 	    int i = (start_from_port + j) % (DIRECTIONS + 1);
@@ -94,11 +91,13 @@ void NoximRouter::txProcess()
 		    route_data.src_id = flit.src_id;
 		    route_data.dst_id = flit.dst_id;
 		    route_data.dir_in = i;
+		    routeDataArray[i] = route_data;
 
 		    int o = route(route_data);
-//		    if(o==i)
-//		    	cout << "routed to the incoming port!" << endl;
-
+		    if(o == i){
+		    	cout << "routed to the incoming port!" << endl;
+		    	assert(false);
+		    }
 		    const bool isAvailable = reservation_table.isAvailable(o);
 		    
 			// log
@@ -111,7 +110,7 @@ void NoximRouter::txProcess()
 		    if (isAvailable) {
 				reservation_table.reserve(i, o);
 
-			// log
+				// log
 				if (NoximGlobalParams::verbose_mode > VERBOSE_LOW) {
 					cout << toString() << " Input[" << getDirStr(i) << "] (" << buffer[i].
 							Size() << " flits)" << ", reserved Output["
@@ -163,15 +162,14 @@ void NoximRouter::txProcess()
 			// DVFS  TODO is this condition right? (for any destination, set queue time)
 			double qTime = sc_time_stamp().to_double() / 1000
 						- flitReceivedTime[i];
-			dvfs->setQueueTime(qTime);
-			dvfs->updateQTable(i);
-//			dvfs->updateQTableWithQueueTimeChange(flit.dst_id, o);
-
 			if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
 				cout << toString() << "flitReceivedTime = "
 					<< flitReceivedTime[i] << ", currentTime = "
 					<< sc_time_stamp().to_double() / 1000
 					<< ", qTime = " << qTime << endl;
+			dvfs->setQueueTime(qTime);
+			dvfs->updateQTable(i, routeDataArray[i]);
+
 			// Update stats
 			if (o == DIRECTION_LOCAL) {
 			    stats.receivedFlit(sc_time_stamp().
@@ -241,7 +239,7 @@ void NoximRouter::bufferMonitor()
     }
 }
 
-vector <int> NoximRouter::routingFunction(const NoximRouteData & route_data)
+vector <int> NoximRouter::routingFunction(NoximRouteData & route_data)
 {
     NoximCoord position = id2Coord(route_data.current_id);
     NoximCoord src_coord = id2Coord(route_data.src_id);
@@ -250,13 +248,19 @@ vector <int> NoximRouter::routingFunction(const NoximRouteData & route_data)
 
     vector<int> dirs;
     switch (NoximGlobalParams::routing_algorithm) {
-	case ROUTING_Q:
 
+	case ROUTING_Q:
 		dirs.push_back(dvfs->routingQ(route_data));
 		return dirs;
 
+	case ROUTING_NON_DET_Q:
+		return dvfs->nonDeterminsticRoutingQ(route_data);
+
     case ROUTING_XY:
 	return routingXY(position, dst_coord);
+
+    case ROUTING_NON_DET_XY:
+	return routingNonDetXY(position, dst_coord);
 
     case ROUTING_WEST_FIRST:
 	return routingWestFirst(position, dst_coord);
@@ -287,7 +291,7 @@ vector <int> NoximRouter::routingFunction(const NoximRouteData & route_data)
     return (vector < int >) (0);
 }
 
-int NoximRouter::route(const NoximRouteData & route_data)
+int NoximRouter::route(NoximRouteData & route_data)
 {
     stats.power.Routing();
 
@@ -295,7 +299,7 @@ int NoximRouter::route(const NoximRouteData & route_data)
 	return DIRECTION_LOCAL;
 
     vector < int >candidate_channels = routingFunction(route_data);
-
+    assert(candidate_channels.size() > 0);
     return selectionFunction(candidate_channels, route_data);
 }
 
@@ -491,6 +495,23 @@ vector < int >NoximRouter::routingXY(const NoximCoord & current,
     else if (destination.y > current.y)
 	directions.push_back(DIRECTION_SOUTH);
     else
+	directions.push_back(DIRECTION_NORTH);
+
+    return directions;
+}
+
+vector < int >NoximRouter::routingNonDetXY(const NoximCoord & current,
+				     const NoximCoord & destination)
+{
+    vector < int >directions;
+
+    if (destination.x > current.x)
+	directions.push_back(DIRECTION_EAST);
+    if (destination.x < current.x)
+	directions.push_back(DIRECTION_WEST);
+    if (destination.y > current.y)
+	directions.push_back(DIRECTION_SOUTH);
+    if (destination.y < current.y)
 	directions.push_back(DIRECTION_NORTH);
 
     return directions;

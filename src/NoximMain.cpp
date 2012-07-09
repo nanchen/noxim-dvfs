@@ -34,13 +34,17 @@ float NoximGlobalParams::probability_of_retransmission = DEFAULT_PROBABILITY_OF_
 int NoximGlobalParams::traffic_distribution = DEFAULT_TRAFFIC_DISTRIBUTION;
 bool NoximGlobalParams::concurrent_traffic = true;
 char NoximGlobalParams::traffic_table_filename[128] = DEFAULT_TRAFFIC_TABLE_FILENAME;
-char NoximGlobalParams::dvfs_setting_filename[128] = DEFAULT_DVFS_SETTING_FILENAME;
 int NoximGlobalParams::simulation_time = DEFAULT_SIMULATION_TIME;
 int NoximGlobalParams::stats_warm_up_time = DEFAULT_STATS_WARM_UP_TIME;
 int NoximGlobalParams::rnd_generator_seed = time(NULL);
 bool NoximGlobalParams::detailed = DEFAULT_DETAILED;
 float NoximGlobalParams::dyad_threshold = DEFAULT_DYAD_THRESHOLD;
 unsigned int NoximGlobalParams::max_volume_to_be_drained = DEFAULT_MAX_VOLUME_TO_BE_DRAINED;
+//dvfs
+char NoximGlobalParams::dvfs_setting_filename[128] = DEFAULT_DVFS_SETTING_FILENAME;
+bool NoximGlobalParams::dvfs_regular_update = DEFAULT_DVFS_REGULAR_UPDATE;
+double NoximGlobalParams::ETA = DEFAULT_ETA;
+
 vector <pair <int, double> > NoximGlobalParams::hotspots;
 
 //---------------------------------------------------------------------------

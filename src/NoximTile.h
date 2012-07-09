@@ -145,10 +145,6 @@ SC_MODULE(NoximTile)
 
     }
 
-//public:
-//    void setDivision(unsigned int division);
-//    void setOff(bool off);
-
 };
 
 #endif

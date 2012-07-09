@@ -61,12 +61,7 @@ SC_MODULE(NoximDVFSUnit) {
 
 	char* toFullString() const;
 	char* qTableString() const;
-
-	// routing
-	bool canUpdateQTable[DIRECTIONS+1];
-
-
-	//-----------------id, coord, toString, neighbor------------------
+	//-----------------id, coord, toString, neighbor----END-----------
 
 	SC_CTOR(NoximDVFSUnit) {
 
@@ -97,15 +92,17 @@ SC_MODULE(NoximDVFSUnit) {
 
 public:
 	int getDirWithMinQValue(int dstId);
+	int getDirWithMinQValueFromDirs(int dstId, int excludedDir);
+
+	vector<int> getDirsWithMinQValueFromDirs(int dstId, int excludedDir);
+
 	double getQValue(int dstId, int yDir);
 	void setQValue(int dstId, int yDir, double qValue);
 	void notifyAllNeighbors(int event);
-//	void notifyNeighborWithRegularFlitDelivery(int neighborDir, int dstId);
 	void setQTableForANeighbor(int nDir, double qValue);
 	void setQTableForANeighborOnFreqScaling(int nDir, double queueTimeY,
 			unsigned int newDivision, unsigned int prevDivision);
-//	void setQTableForRegularFlitDelivery(int nDir, int dstId, double ty);
-	void updateQTable(int dirIn);
+	void updateQTable(int dirIn, NoximRouteData& routeData);
 	void initQTableForANeighbor(int nDir);
 	void initQTable();
 
@@ -114,7 +111,8 @@ public:
 	static int distance(NoximDVFSUnit* dvfs1, NoximDVFSUnit* dvfs2);
 
 	//routing
-	int routingQ(const NoximRouteData & routeData);
+	int routingQ(NoximRouteData & routeData);
+	vector<int> nonDeterminsticRoutingQ(NoximRouteData & routeData);
 	vector<int> scheduleRoutingPath(const int dstId);
 
 	// divider
@@ -124,9 +122,11 @@ public:
 	bool isDutyCycle();
 	void setQueueTime(double qTime);
 	double getQueueTime();
-	void updateQTableWithQueueTimeChange(int sendToDstId, int sendToDir);
+//	void updateQTableWithQueueTimeChange(int sendToDstId, int sendToDir);
 
+	// dvfs-setting
 	vector<DVFSAction> actions;
+
 private:
 	double qTable[DIRECTIONS][MAX_STATIC_DIM * MAX_STATIC_DIM];
 	unsigned int divisionCount;

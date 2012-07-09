@@ -17,7 +17,7 @@ class NoximDVFSUnitTest : public TestSuite::Test
         void testRoutingQ();
         void testDirWithMinQValue();
         void testGetQValue();
-        void testQTableChangeRegularDelivery();
+//        void testQTableChangeRegularDelivery();
         void printVector(const vector<int>& v);
         void printArray(int array[]);
         vector<int> NoximDVFSUnitTest::runRouting(const int srcId, const int dstId);

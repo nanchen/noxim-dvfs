@@ -12,10 +12,10 @@ using namespace std;
 class DVFSAction {
 public:
 	NoximCoord coord;
-    int id;
-    int timeStamp;
-    string action;
-    unsigned int division;
+	int id;
+	int timeStamp;
+	string action;
+	unsigned int division;
 	char* toString() const;
 };
 #endif

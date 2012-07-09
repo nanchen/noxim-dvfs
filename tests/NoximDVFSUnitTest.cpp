@@ -8,7 +8,7 @@ void NoximDVFSUnitTest::run() {
 	testRoutingQ();
 	testDirWithMinQValue();
 	testGetQValue();
-	testQTableChangeRegularDelivery();
+//	testQTableChangeRegularDelivery();
 }
 
 void NoximDVFSUnitTest::printVector(const vector<int>& v) {
@@ -140,16 +140,16 @@ void NoximDVFSUnitTest::testGetQValue(){
     test_(3.0 == dvfs3->getQValue(1,DIRECTION_WEST));
 }
 
-void NoximDVFSUnitTest::testQTableChangeRegularDelivery(){
-    NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
-    NoximDVFSUnit* dvfs3 = NoximDVFSUnit::getDVFS(3);
-    dvfs3->setQueueTime(100.0);
-    dvfs2->notifyNeighborWithRegularFlitDelivery(DIRECTION_EAST, 0);
-    test_(52.0 == dvfs3->getQValue(0, DIRECTION_WEST));
-    dvfs3->setQueueTime(1.0);
-    dvfs2->notifyNeighborWithRegularFlitDelivery(DIRECTION_EAST, 0);
-    test_(27.5 == dvfs3->getQValue(0, DIRECTION_WEST));
-}
+//void NoximDVFSUnitTest::testQTableChangeRegularDelivery(){
+//    NoximDVFSUnit* dvfs2 = NoximDVFSUnit::getDVFS(2);
+//    NoximDVFSUnit* dvfs3 = NoximDVFSUnit::getDVFS(3);
+//    dvfs3->setQueueTime(100.0);
+//    dvfs2->notifyNeighborWithRegularFlitDelivery(DIRECTION_EAST, 0);
+//    test_(52.0 == dvfs3->getQValue(0, DIRECTION_WEST));
+//    dvfs3->setQueueTime(1.0);
+//    dvfs2->notifyNeighborWithRegularFlitDelivery(DIRECTION_EAST, 0);
+//    test_(27.5 == dvfs3->getQValue(0, DIRECTION_WEST));
+//}
 
 
 

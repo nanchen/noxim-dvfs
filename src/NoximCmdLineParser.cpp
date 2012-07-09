@@ -39,6 +39,7 @@ void showHelp(char selfname[])
 	"\t-routing TYPE\tSet the routing algorithm to TYPE where TYPE is one of the following (default "
 	<< DEFAULT_ROUTING_ALGORITHM << "):" << endl;
     cout << "\t\txy\t\tXY routing algorithm" << endl;
+    cout << "\t\tnon-det-xy\tNon-determinstic XY routing algorithm" << endl;
     cout << "\t\twestfirst\tWest-First routing algorithm" << endl;
     cout << "\t\tnorthlast\tNorth-Last routing algorithm" << endl;
     cout << "\t\tnegativefirst\tNegative-First routing algorithm" << endl;
@@ -50,6 +51,7 @@ void showHelp(char selfname[])
 	"\t\ttable FILENAME\tRouting Table Based routing algorithm with table in the specified file"
 	<< endl;
     cout << "\t\tq \t\tQ-table based routing algorithm" << endl;
+    cout << "\t\tnon-det-q\tNon-determinstic Q routing algorithm" << endl;
 
     cout <<
 	"\t-sel TYPE\tSet the selection strategy to TYPE where TYPE is one of the following (default "
@@ -102,7 +104,16 @@ void showHelp(char selfname[])
 	<< endl;
     cout <<
 	"\t-sim N\t\tRun for the specified simulation time [cycles] (default "
-	<< DEFAULT_SIMULATION_TIME << ")" << endl << endl;
+	<< DEFAULT_SIMULATION_TIME << ")" << endl;
+    cout << "\t-no-ct\t\tNo currency (generate and send packets in sequence)" << endl;
+
+    cout << "\t------------------------DVFS related-------------------------------:" << endl;
+    cout << "\t-dvfs FILENAME\t\tSpecify DVFS setting file" << endl;
+    cout << "\t-dvfs-update\t\tUpdate q-tables on regular packet delivery" << endl;
+    cout << "\t-eta N\t\t\tSet q-routing ETA value, default = " << DEFAULT_ETA << endl;
+    cout << "\t------------------------DVFS related--------------------------------" << endl;
+
+    cout << endl;
     cout <<
 	"If you find this program useful please don't forget to mention in your paper Maurizio Palesi <mpalesi@diit.unict.it>"
 	<< endl;
@@ -142,6 +153,12 @@ void showConfig()
 	stats_warm_up_time << endl;
     cout << "- rnd_generator_seed = " << NoximGlobalParams::
 	rnd_generator_seed << endl;
+
+    // dvfs
+    cout << "- concurrent_traffic = " << NoximGlobalParams::concurrent_traffic << endl;
+    cout << "- dvfs_setting_filename = " << NoximGlobalParams::dvfs_setting_filename << endl;
+    cout << "- dvfs_regular_update = " << NoximGlobalParams::dvfs_regular_update << endl;
+    cout << "- ETA = " << NoximGlobalParams::ETA << endl;
 }
 
 void checkInputParameters()
@@ -263,6 +280,8 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		char *routing = arg_vet[++i];
 		if (!strcmp(routing, "xy"))
 		    NoximGlobalParams::routing_algorithm = ROUTING_XY;
+		else if(!strcmp(routing, "non-det-xy"))
+			NoximGlobalParams::routing_algorithm = ROUTING_NON_DET_XY;
 		else if (!strcmp(routing, "westfirst"))
 		    NoximGlobalParams::routing_algorithm =
 			ROUTING_WEST_FIRST;
@@ -289,7 +308,9 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		    NoximGlobalParams::packet_injection_rate = 0;	// ??? why ???
 		}else if (!strcmp(routing, "q")){
 			NoximGlobalParams::routing_algorithm = ROUTING_Q;
-		}
+		}else if (!strcmp(routing, "non-det-q")){
+					NoximGlobalParams::routing_algorithm = ROUTING_NON_DET_Q;
+				}
 		else
 		    NoximGlobalParams::routing_algorithm = INVALID_ROUTING;
 	    } else if (!strcmp(arg_vet[i], "-sel")) {
@@ -355,10 +376,19 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		    NoximGlobalParams::traffic_distribution =
 			INVALID_TRAFFIC;
 	    }
+
+	    //------------------------dvfs ------------------------
 	    // DVFS setting
-		else if (!strcmp(arg_vet[i], "-dvfs")) {
+		else if (!strcmp(arg_vet[i], "-dvfs"))
 			strcpy(NoximGlobalParams::dvfs_setting_filename, arg_vet[++i]);
-		} else if (!strcmp(arg_vet[i], "-hs")) {
+	    // DVFS q table update for regular delivery
+	    else if (!strcmp(arg_vet[i], "-dvfs-update"))
+	    	NoximGlobalParams::dvfs_regular_update = true;
+	    else if (!strcmp(arg_vet[i], "-eta"))
+	    	NoximGlobalParams::ETA = atof(arg_vet[++i]);
+
+
+		else if (!strcmp(arg_vet[i], "-hs")) {
 		int node = atoi(arg_vet[++i]);
 		double percentage = atof(arg_vet[++i]);
 		pair < int, double >t(node, percentage);

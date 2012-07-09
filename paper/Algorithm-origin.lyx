@@ -1,0 +1,479 @@
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Float algorithm
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Reinforcement Routing Algorithm for NoC with Per-core DVFS
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Variables and functions:
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $Q_{x}(d,y)$
+\end_inset
+
+ - estimated delivery time from node 
+\begin_inset Formula $x$
+\end_inset
+
+ to node 
+\begin_inset Formula $d$
+\end_inset
+
+ via node 
+\begin_inset Formula $y$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $q_{x}$
+\end_inset
+
+ - the queue time of the most recent packet sent from node 
+\begin_inset Formula $x$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $minQ_{x}(d)$
+\end_inset
+
+ - a function to select the routing direction with minimum Q-value
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $t_{y}=Q_{y}(d,minQ_{y}(d))$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Update the Q-table for power gating and DVFS:
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $if$
+\end_inset
+
+ (node 
+\begin_inset Formula $y$
+\end_inset
+
+ is power gated) 
+\begin_inset Formula $then$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+node 
+\begin_inset Formula $y$
+\end_inset
+
+ sends signal to all neighboring nodes
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Formula $\forall x\in\{neighbors\; of\; y\},\;\forall d\in NoC\wedge d\neq x,\; Q_{x}(d,y)=\infty$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $else\; if$
+\end_inset
+
+ (node 
+\begin_inset Formula $y$
+\end_inset
+
+ is power resumed) 
+\begin_inset Formula $then$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+node 
+\begin_inset Formula $y$
+\end_inset
+
+ sends signal to all neighboring nodes
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Formula $\forall x\in\{neighbors\; of\; y\},\;\forall d\in NoC\wedge d\neq x,\; Q_{x}(d,y)=initial\; value$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $else\; if$
+\end_inset
+
+ (frequency of node 
+\begin_inset Formula $y$
+\end_inset
+
+ is scaled from 
+\begin_inset Formula $f$
+\end_inset
+
+ to 
+\begin_inset Formula $f'$
+\end_inset
+
+) 
+\begin_inset Formula $then$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+node 
+\begin_inset Formula $y$
+\end_inset
+
+ sends signal to all neighboring nodes
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $\forall x\in\{neighbors\; of\; y\},\;\forall d\in NoC\wedge d\neq x,\; Q_{x}(d,y)=Q_{x}(d,y)+q_{y}(f'^{-1}-f^{-1})$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $end\; if$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Update the Q-table for regular packet delivery:
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $when$
+\end_inset
+
+ node 
+\begin_inset Formula $x$
+\end_inset
+
+ sends a packet 
+\begin_inset Formula $p$
+\end_inset
+
+ to its neighbor 
+\begin_inset Formula $y$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+save the queue time of 
+\begin_inset Formula $p$
+\end_inset
+
+ to 
+\begin_inset Formula $q_{x}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+send packet 
+\begin_inset Formula $p$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+wait for feedback signal from node 
+\begin_inset Formula $y$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+update Q-table with 
+\begin_inset Formula $Q'_{x}(d,y)=Q_{x}(d,y)+\Delta Q_{x}(d,y)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Formula $\quad$
+\end_inset
+
+ where 
+\begin_inset Formula $\Delta Q_{x}(d,y)=\eta(q_{x}+1+t_{y}-Q_{x}(x,y))$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $when$
+\end_inset
+
+ node 
+\begin_inset Formula $y$
+\end_inset
+
+ receives a packet 
+\begin_inset Formula $p$
+\end_inset
+
+ from its neighbor 
+\begin_inset Formula $x$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+send feedback signal with 
+\begin_inset Formula $t_{y}$
+\end_inset
+
+ to node 
+\begin_inset Formula $x$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Routing polocy:
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $for$
+\end_inset
+
+ each node 
+\begin_inset Formula $x$
+\end_inset
+
+ to route a packet 
+\begin_inset Formula $p$
+\end_inset
+
+ with destination node 
+\begin_inset Formula $d$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Formula $if$
+\end_inset
+
+ (
+\begin_inset Formula $x==d$
+\end_inset
+
+) 
+\begin_inset Formula $then$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\qquad$
+\end_inset
+
+route 
+\begin_inset Formula $p$
+\end_inset
+
+ to local PE
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\quad$
+\end_inset
+
+
+\begin_inset Formula $else$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula $\qquad$
+\end_inset
+
+route 
+\begin_inset Formula $p$
+\end_inset
+
+ to 
+\begin_inset Formula $minQ_{x}(d)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

@@ -7,7 +7,7 @@
 	<queue>
 	"NoximMain.h"
 
-1328824242 /home/nan/Dropbox/chen-work/noxim-q/src/NoximMain.h
+1341779040 /home/nan/Dropbox/chen-work/noxim-q/src/NoximMain.h
 	<cassert>
 	<systemc.h>
 	<vector>
@@ -736,17 +736,17 @@
 
 1313954387 /home/nan/dev/systemc-2.2.0/include/sysc/utils/sc_utils_ids.h
 
-1328824380 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximCmdLineParser.cpp
+1341777913 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximCmdLineParser.cpp
 	"NoximCmdLineParser.h"
 
 1269438728 /home/nan/Dropbox/chen-work/noxim-q/src/NoximCmdLineParser.h
 	"NoximMain.h"
 
-1335986778 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximDVFSUnit.cpp
+1341778724 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximDVFSUnit.cpp
 	"NoximDVFSUnit.h"
 	<math.h>
 
-1329062990 /home/nan/Dropbox/chen-work/noxim-q/src/NoximDVFSUnit.h
+1341778769 /home/nan/Dropbox/chen-work/noxim-q/src/NoximDVFSUnit.h
 	<systemc.h>
 	<string>
 	"NoximMain.h"
@@ -784,14 +784,14 @@
 	"NoximGlobalTrafficTable.h"
 	"NoximDVFSSetting.h"
 
-1328996435 /home/nan/Dropbox/chen-work/noxim-q/src/NoximTile.h
+1341779798 /home/nan/Dropbox/chen-work/noxim-q/src/NoximTile.h
 	<systemc.h>
 	"NoximRouter.h"
 	"NoximProcessingElement.h"
 	"NoximDVFSUnit.h"
 	<stdio.h>
 
-1328995634 /home/nan/Dropbox/chen-work/noxim-q/src/NoximRouter.h
+1341779730 /home/nan/Dropbox/chen-work/noxim-q/src/NoximRouter.h
 	<systemc.h>
 	"NoximMain.h"
 	"NoximBuffer.h"
@@ -839,28 +839,28 @@
 1269438728 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximLocalRoutingTable.cpp
 	"NoximLocalRoutingTable.h"
 
-1335987453 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximMain.cpp
+1341771948 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximMain.cpp
 	"NoximMain.h"
 	"NoximNoC.h"
 	"NoximGlobalStats.h"
 	"NoximCmdLineParser.h"
 
-1335985761 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximNoC.cpp
+1341776847 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximNoC.cpp
 	"NoximNoC.h"
 
-1326238778 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximPower.cpp
+1341776717 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximPower.cpp
 	"NoximPower.h"
 
-1328999860 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximProcessingElement.cpp
+1336509485 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximProcessingElement.cpp
 	"NoximProcessingElement.h"
 
 1327174360 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximReservationTable.cpp
 	"NoximReservationTable.h"
 
-1335986947 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximRouter.cpp
+1341860972 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximRouter.cpp
 	"NoximRouter.h"
 
-1329052738 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximStats.cpp
+1341779775 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximStats.cpp
 	"NoximStats.h"
 
 1326037471 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximTile.cpp
@@ -882,7 +882,7 @@
 	<iostream>
 	<cassert>
 
-1327184398 /home/nan/Dropbox/chen-work/noxim-q/tests/NoximDVFSUnitTest.h
+1341863478 /home/nan/Dropbox/chen-work/noxim-q/tests/NoximDVFSUnitTest.h
 	"Test.h"
 	"NoximDVFSUnit.h"
 
@@ -897,7 +897,7 @@
 	<iostream>
 	<typeinfo>
 
-1327185174 source:/home/nan/Dropbox/chen-work/noxim-q/tests/NoximDVFSUnitTest.cpp
+1341863518 source:/home/nan/Dropbox/chen-work/noxim-q/tests/NoximDVFSUnitTest.cpp
 	"NoximDVFSUnitTest.h"
 	"NoximMain.h"
 	"NoximNoC.h"
@@ -911,8 +911,15 @@
 	"NoximMain.h"
 	"DVFSAction.h"
 
-1328460224 /home/nan/Dropbox/chen-work/noxim-q/src/DVFSAction.h
+1341770494 /home/nan/Dropbox/chen-work/noxim-q/src/DVFSAction.h
 	<stdlib.h>
 	<string>
 	"NoximMain.h"
+
+1328460592 source:/home/nan/Dropbox/chen-work/noxim-q/src/DVFSAction.cpp
+	"DVFSAction.h"
+
+1336452320 source:/home/nan/Dropbox/chen-work/noxim-q/src/NoximDVFSSetting.cpp
+	"NoximDVFSSetting.h"
+	"NoximDVFSUnit.h"
 

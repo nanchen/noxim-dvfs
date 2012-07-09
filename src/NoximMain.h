@@ -44,6 +44,8 @@ using namespace std;
 #define ROUTING_FULLY_ADAPTIVE 8
 #define ROUTING_TABLE_BASED    9
 #define ROUTING_Q			  10
+#define ROUTING_NON_DET_XY    11
+#define ROUTING_NON_DET_Q	  12
 #define INVALID_ROUTING       -1
 
 // Selection strategies
@@ -74,25 +76,29 @@ using namespace std;
 #define DEFAULT_VERBOSE_MODE               VERBOSE_OFF
 #define DEFAULT_TRACE_MODE                       false
 #define DEFAULT_TRACE_FILENAME                      ""
-#define DEFAULT_MESH_DIM_X                           2
-#define DEFAULT_MESH_DIM_Y                           2
+#define DEFAULT_MESH_DIM_X                           4
+#define DEFAULT_MESH_DIM_Y                           4
 #define DEFAULT_BUFFER_DEPTH                         4
 #define DEFAULT_MAX_PACKET_SIZE                     10
 #define DEFAULT_MIN_PACKET_SIZE                      2
-#define DEFAULT_ROUTING_ALGORITHM            ROUTING_Q
 #define DEFAULT_ROUTING_TABLE_FILENAME              ""
 #define DEFAULT_SELECTION_STRATEGY          SEL_RANDOM
 #define DEFAULT_PACKET_INJECTION_RATE             0.01
 #define DEFAULT_PROBABILITY_OF_RETRANSMISSION     0.01
 #define DEFAULT_TRAFFIC_DISTRIBUTION   TRAFFIC_RANDOM
 #define DEFAULT_TRAFFIC_TABLE_FILENAME              ""
-#define DEFAULT_DVFS_SETTING_FILENAME				""
 #define DEFAULT_RESET_TIME                        1000
 #define DEFAULT_SIMULATION_TIME                  10000
 #define DEFAULT_STATS_WARM_UP_TIME  DEFAULT_RESET_TIME
 #define DEFAULT_DETAILED                         false
 #define DEFAULT_DYAD_THRESHOLD                     0.6
 #define DEFAULT_MAX_VOLUME_TO_BE_DRAINED             0
+// --------------------- DVFS -------------------------
+#define DEFAULT_DVFS_SETTING_FILENAME				""
+#define DEFAULT_DVFS_REGULAR_UPDATE				 false
+#define DEFAULT_ETA			                       0.5
+#define DEFAULT_ROUTING_ALGORITHM            ROUTING_NON_DET_Q
+
 
 // TODO by Fafa - this MUST be removed!!! Use only STL vectors instead!!!
 #define MAX_STATIC_DIM 20
@@ -113,9 +119,7 @@ struct NoximGlobalParams {
     static float packet_injection_rate;
     static float probability_of_retransmission;
     static int traffic_distribution;
-    static bool concurrent_traffic;
     static char traffic_table_filename[128];
-    static char dvfs_setting_filename[128];
     static int simulation_time;
     static int stats_warm_up_time;
     static int rnd_generator_seed;
@@ -123,6 +127,12 @@ struct NoximGlobalParams {
     static vector <pair <int, double> > hotspots;
     static float dyad_threshold;
     static unsigned int max_volume_to_be_drained;
+
+    static bool concurrent_traffic;
+    // DVFS
+    static char dvfs_setting_filename[128];
+    static bool dvfs_regular_update;
+    static double ETA;
 };
 
 // NoximCoord -- XY coordinates type of the Tile inside the Mesh
@@ -183,11 +193,12 @@ struct NoximRouteData {
     int src_id;
     int dst_id;
     int dir_in;			// direction from which the packet comes from
+    bool canUpdateQTable[DIRECTIONS+1];
 };
 
 struct NoximChannelStatus {
     int free_slots;		// occupied buffer slots
-    bool available;		//
+    bool available;		// 
     inline bool operator ==(const NoximChannelStatus & bs) const {
 	return (free_slots == bs.free_slots && available == bs.available);
     };

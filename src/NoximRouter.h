@@ -46,6 +46,7 @@ SC_MODULE(NoximRouter)
     sc_in < NoximNoP_data > NoP_data_in[DIRECTIONS];
 
     // Registers
+
     /*
        NoximCoord position;                     // Router position inside the mesh
      */
@@ -79,6 +80,7 @@ SC_MODULE(NoximRouter)
 	//-----------------id, coord, toString ------------------
 
     // Functions
+
     void rxProcess();		// The receiving process
     void txProcess();		// The transmitting process
     // reset
@@ -117,12 +119,12 @@ SC_MODULE(NoximRouter)
   private:
 
     // performs actual routing + selection
-    int route(const NoximRouteData & route_data);
+    int route(NoximRouteData & route_data);
 
     // wrappers
     int selectionFunction(const vector <int> &directions,
 			  const NoximRouteData & route_data);
-    vector < int >routingFunction(const NoximRouteData & route_data);
+    vector < int >routingFunction(NoximRouteData & route_data);
 
     // selection strategies
     int selectionRandom(const vector <int> & directions);
@@ -131,10 +133,10 @@ SC_MODULE(NoximRouter)
 		     const NoximRouteData & route_data);
 
     // routing functions
-//    vector<int> routingQ(const NoximCoord & destination);
-
     vector < int >routingXY(const NoximCoord & current,
 			    const NoximCoord & destination);
+    vector < int >NoximRouter::routingNonDetXY(const NoximCoord & current,
+    				     const NoximCoord & destination);
     vector < int >routingWestFirst(const NoximCoord & current,
 				   const NoximCoord & destination);
     vector < int >routingNorthLast(const NoximCoord & current,
@@ -162,6 +164,7 @@ SC_MODULE(NoximRouter)
     bool inCongestion();
 
   public:
+
     unsigned int local_drained;
 
 };

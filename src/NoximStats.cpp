@@ -29,7 +29,6 @@ void NoximStats::receivedFlit(const double arrival_time,
 	if (arrival_time - DEFAULT_RESET_TIME < warm_up_time)
 	return;
 
-//    cout << "NoximStats::receivedFlit" << endl;
     int i = searchCommHistory(flit.src_id);
 
     if (i == -1) {

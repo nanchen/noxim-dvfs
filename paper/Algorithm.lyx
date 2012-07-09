@@ -60,12 +60,6 @@
 \begin_body
 
 \begin_layout Standard
-\begin_inset Float algorithm
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
 \begin_inset Caption
 
 \begin_layout Plain Layout
@@ -77,11 +71,11 @@ Reinforcement Routing Algorithm for NoC with Per-core DVFS
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Variables and functions:
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $Q_{x}(d,y)$
 \end_inset
 
@@ -100,43 +94,90 @@ Variables and functions:
 
 \end_layout
 
-\begin_layout Plain Layout
-\begin_inset Formula $q_{x}$
+\begin_layout Standard
+\begin_inset Formula $q_{x}(dirIn)$
 \end_inset
 
- - the queue time of the most recent packet sent from node 
+ - the queue time of the most recent packet received from port 
+\begin_inset Formula $dirIn$
+\end_inset
+
+ then sent from node 
 \begin_inset Formula $x$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
-\begin_inset Formula $minQ_{x}(d)$
+\begin_layout Standard
+determinstic 
+\begin_inset Formula $minQ_{x}$
 \end_inset
 
- - a function to select the routing direction with minimum Q-value
+:
 \end_layout
 
-\begin_layout Plain Layout
-\begin_inset Formula $t_{y}=(d==y)?q_{y}:Q_{y}(d,minQ_{y}(d))$
+\begin_layout Standard
+\begin_inset Formula $dir\; minQ_{x}(d,\{directions\})$
+\end_inset
+
+ - a function to select the routing direction 
+\begin_inset Formula $dir$
+\end_inset
+
+ with minimum Q-value from 
+\begin_inset Formula $\{directions\}$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
+non-determinstic 
+\begin_inset Formula $minQ_{x}$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $\{dirs\}\; minQ_{x}(d,\{directions\})$
+\end_inset
+
+ - a function to select the routing directions 
+\begin_inset Formula $\{dirs\}$
+\end_inset
+
+ with minimum Q-value from 
+\begin_inset Formula $\{directions\}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $t_{y}=(d==y)?q_{y}:Q_{y}(d,$
+\end_inset
+
+ deterministic 
+\begin_inset Formula $minQ_{y}(d,\{all\; directions\})$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Update the Q-table for power gating and DVFS:
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $if$
 \end_inset
 
@@ -151,7 +192,7 @@ Update the Q-table for power gating and DVFS:
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -162,7 +203,7 @@ node
  sends signal to all neighboring nodes
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -173,7 +214,7 @@ node
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $else\; if$
 \end_inset
 
@@ -188,7 +229,7 @@ node
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -199,7 +240,7 @@ node
  sends signal to all neighboring nodes
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -210,7 +251,7 @@ node
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $else\; if$
 \end_inset
 
@@ -233,7 +274,7 @@ node
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -244,7 +285,7 @@ node
  sends signal to all neighboring nodes
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -264,25 +305,25 @@ node
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $end\; if$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
-Update the Q-table for regular packet delivery:
+\begin_layout Standard
+Update the Q-table for regular packet delivery (optional):
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $when$
 \end_inset
 
@@ -301,7 +342,7 @@ Update the Q-table for regular packet delivery:
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad if$
 \end_inset
 
@@ -329,12 +370,20 @@ p
 \uwave default
 \noun default
 \color inherit
- is routed to 
-\begin_inset Formula $minQ_{x}(d)$
+ was routed to the 
+\begin_inset Formula $port$
 \end_inset
 
- among all the directions (
-\begin_inset Formula $\forall dir\in directions$
+
+\begin_inset Formula $\neq local\neq neighbor\neq dirIn$
+\end_inset
+
+ (meaning routing was 
+\begin_inset Quotes eld
+\end_inset
+
+normal
+\begin_inset Quotes erd
 \end_inset
 
 ) 
@@ -344,7 +393,7 @@ p
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad\quad$
 \end_inset
 
@@ -359,7 +408,7 @@ p
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -367,14 +416,14 @@ p
 \begin_inset Formula $\quad$
 \end_inset
 
- send q-table value query to all neighbor nodes 
+ send q-table value query request to all neighbor nodes 
 \begin_inset Formula $\forall y\in\{neighbors\; of\; x\}$
 \end_inset
 
  
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad\quad$
 \end_inset
 
@@ -385,7 +434,7 @@ p
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 
 \family roman
 \series medium
@@ -404,7 +453,7 @@ p
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -417,13 +466,13 @@ p
 \end_inset
 
 
-\begin_inset Formula $\forall d\in NoC\wedge d\neq x$
+\begin_inset Formula $(\forall d\in NoC)\;\wedge\;(d\neq x)$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -446,7 +495,7 @@ update Q-table with
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -465,14 +514,14 @@ update Q-table with
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad end\; if$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $when$
 \end_inset
 
@@ -487,7 +536,7 @@ update Q-table with
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -498,18 +547,18 @@ send feedback signal with entire q-table to node
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Routing polocy:
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $for$
 \end_inset
 
@@ -528,7 +577,7 @@ Routing polocy:
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -547,7 +596,7 @@ Routing polocy:
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\qquad$
 \end_inset
 
@@ -558,7 +607,7 @@ route
  to local PE
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -585,7 +634,7 @@ route
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\qquad$
 \end_inset
 
@@ -600,69 +649,7 @@ route
 
 \end_layout
 
-\begin_layout Plain Layout
-\begin_inset Formula $\quad$
-\end_inset
-
-
-\begin_inset Formula $if$
-\end_inset
-
- ( 
-\begin_inset Formula $minQ_{x}(d)==input$
-\end_inset
-
- ) 
-\begin_inset Formula $then$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Formula $\qquad$
-\end_inset
-
-route 
-\begin_inset Formula $p$
-\end_inset
-
- to 
-\begin_inset Formula $minQ_{x}(d)$
-\end_inset
-
- among the directions except input (
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\strikeout off
-\uuline off
-\uwave off
-\noun off
-\color none
-
-\begin_inset Formula $\forall dir\in directions\wedge dir\neq input$
-\end_inset
-
-
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\strikeout default
-\uuline default
-\uwave default
-\noun default
-\color inherit
-)
-\end_layout
-
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\quad$
 \end_inset
 
@@ -673,7 +660,7 @@ route
 
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \begin_inset Formula $\qquad$
 \end_inset
 
@@ -681,20 +668,11 @@ route
 \begin_inset Formula $p$
 \end_inset
 
- to 
-\begin_inset Formula $minQ_{x}(d)$
+ to (either determinstic or non-determinstic)
+\begin_inset Formula $minQ_{x}(d,\{\forall dir\in directions\wedge dir\neq input\})$
 \end_inset
 
- among all the directions (
-\begin_inset Formula $\forall dir\in directions$
-\end_inset
-
-)
-\end_layout
-
-\end_inset
-
-
+ 
 \end_layout
 
 \end_body
