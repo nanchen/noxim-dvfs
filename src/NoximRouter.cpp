@@ -129,14 +129,15 @@ void NoximRouter::txProcess()
 
 		int o = reservation_table.getOutputPort(i);
 		if (o != NOT_RESERVED) {
-	    	// drop packet when output is off
+			// drop packet when output is off
 			if (dvfs->isNeighborOff(o)) {
 				if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-					cout << toString() << "Output[" << getDirStr(o)
-							<< "] is off, drop the flit!" << endl;
+					cout << toString() << " Output[" << getDirStr(o)
+						<< "] is off, drop the flit!" << endl;
 				}
 				buffer[i].Pop();
-//				current_level_tx[o] = 1 - current_level_tx[o];
+				//TODO what about case of resume
+				current_level_tx[o] = ack_tx[o];
 				if (flit.flit_type == FLIT_TYPE_TAIL)
 					reservation_table.release(o);
 				continue;
