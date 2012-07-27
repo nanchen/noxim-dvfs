@@ -42,6 +42,8 @@ SC_MODULE(NoximProcessingElement)
     int local_id;		// Unique identification number
     bool current_level_rx;	// Current level for Alternating Bit Protocol (ABP)
     bool current_level_tx;	// Current level for Alternating Bit Protocol (ABP)
+    bool ready_to_tx;
+    bool ready_to_rx;
     queue < NoximPacket > packet_queue;	// Local queue of packets
     bool transmittedAtPreviousCycle;	// Used for distributions with memory
 
@@ -70,6 +72,8 @@ SC_MODULE(NoximProcessingElement)
     double log2ceil(double x);
 
 	char* toString() const;
+
+	void logChangedState(string name, bool currentState);
 
     // Constructor
     SC_CTOR(NoximProcessingElement) {

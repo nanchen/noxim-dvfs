@@ -13,6 +13,13 @@
 static bool inProcess = false;
 static int inProcessId = -1;
 
+void NoximProcessingElement::logChangedState(string name, bool currentState) {
+	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+		cout << toString() << " " << name << ": " << (1 - currentState)
+				<< " --> " << currentState << ", packet_queue size = "
+				<< packet_queue.size() << endl;
+}
+
 int NoximProcessingElement::randInt(int min, int max)
 {
     return min +
@@ -21,14 +28,29 @@ int NoximProcessingElement::randInt(int min, int max)
 
 void NoximProcessingElement::rxProcess()
 {
+//
+//	if(dvfs->off){
+////		cout << toString() << " dvfs is off" << endl;
+//		if (req_rx.read() == 1 - current_level_rx) {
+//			 current_level_rx = 1 - current_level_rx;
+//		}
+//		ack_rx.write(current_level_rx);
+//		return;
+//	}
+
 	if(dvfs->isDutyCycle()==false)
 		return;
 
     if (reset.read()) {
 	ack_rx.write(0);
 	current_level_rx = 0;
+	ready_to_rx = 1;
     } else {
 	if (req_rx.read() == 1 - current_level_rx) {
+		if(ready_to_rx == 0)
+			logChangedState("ready_to_rx", 1);
+		ready_to_rx = 1;
+
 	    NoximFlit flit_tmp = flit_rx.read();
 	    if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
 		cout << toString() << " RECEIVING " << flit_tmp << endl;
@@ -38,6 +60,10 @@ void NoximProcessingElement::rxProcess()
 	    	inProcess = false;
 	    	eraseFromGIdSet(flit_tmp.gId);
 	    }
+	}else{
+		if(ready_to_rx == 1)
+			logChangedState("ready_to_rx", 0);
+		ready_to_rx = 0;
 	}
 	ack_rx.write(current_level_rx);
     }
@@ -51,6 +77,7 @@ void NoximProcessingElement::txProcess()
     if (reset.read()) {
 	req_tx.write(0);
 	current_level_tx = 0;
+	ready_to_tx = 1;
 	transmittedAtPreviousCycle = false;
     } else {
 
@@ -65,12 +92,16 @@ void NoximProcessingElement::txProcess()
 	    transmittedAtPreviousCycle = true;
 	} else
 	    transmittedAtPreviousCycle = false;
-	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-		cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
-		     << ack_tx.read() << ", current_level_tx = " << current_level_tx
-			 << ", flit_left = " << packet_queue.front().flit_left
-			 << endl;
+//	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//		cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
+//		     << ack_tx.read() << ", current_level_tx = " << current_level_tx
+//			 << ", flit_left = " << packet_queue.front().flit_left
+//			 << endl;
 	if (ack_tx.read() == current_level_tx) {
+		if(ready_to_tx == 0)
+			logChangedState("ready_to_tx", 1);
+		ready_to_tx = 1;
+
 	    if (!packet_queue.empty()) {
 		NoximFlit flit = nextFlit();	// Generate a new flit
 		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
@@ -83,6 +114,17 @@ void NoximProcessingElement::txProcess()
 		inProcessId = local_id;
 		insertToGIdSet(flit.gId);
 	    }
+	}else{
+		if(ready_to_tx == 1)
+			logChangedState("ready_to_tx", 0);
+		ready_to_tx = 0;
+
+//		//log
+//		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+//				cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
+//				     << ack_tx.read() << ", current_level_tx = " << current_level_tx
+//					 << ", flit_left = " << packet_queue.front().flit_left
+//					 << endl;
 	}
     }
 }

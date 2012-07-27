@@ -56,6 +56,10 @@ SC_MODULE(NoximRouter)
     NoximBuffer buffer[DIRECTIONS + 1];	        // Buffer for each input channel 
     bool current_level_rx[DIRECTIONS + 1];	// Current level for Alternating Bit Protocol (ABP)
     bool current_level_tx[DIRECTIONS + 1];	// Current level for Alternating Bit Protocol (ABP)
+
+    bool ready_to_rx[DIRECTIONS + 1];	// ready to receive
+    bool ready_to_tx[DIRECTIONS + 1];	// ready to send
+
     NoximStats stats;		                // Statistics
     NoximLocalRoutingTable routing_table;	// Routing table
     NoximReservationTable reservation_table;	// Switch reservation table
@@ -162,6 +166,8 @@ SC_MODULE(NoximRouter)
     int reflexDirection(int direction) const;
     int getNeighborId(int _id, int direction) const;
     bool inCongestion();
+
+    void logChangedState(string name, int dir, bool currentState);
 
   public:
 

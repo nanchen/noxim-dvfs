@@ -10,8 +10,37 @@
 
 #include "NoximRouter.h"
 
+void NoximRouter::logChangedState(string name, int dir, bool currentState) {
+	if(dvfs->nUnit[dir] == NULL)
+		return;
+	bool hasNeighborOff = false;
+	for(int i=0;i<DIRECTIONS;i++){
+		if(dvfs->nUnit[i] !=NULL && dvfs->isNeighborOff(i)){
+			hasNeighborOff = true;
+			break;
+		}
+	}
+	if(hasNeighborOff == false)
+		return;
+//	if(dvfs->isNeighborOff(dir) == false)
+//		return;
+	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+		cout << toString() << " " << name << "["<< getDirStr(dir) <<"]: " << (1 - currentState) << " --> "
+				<< currentState << " buffer: " << buffer[dir].Size() << endl;
+}
+
 void NoximRouter::rxProcess()
 {
+//	if(dvfs->off){
+//		for (int i = 0; i < DIRECTIONS + 1; i++) {
+//		    if (req_rx[i].read() == 1 - current_level_rx[i]){
+//		    	current_level_rx[i] = 1 - current_level_rx[i];
+//		    }
+//		    ack_rx[i].write(current_level_rx[i]);
+//		}
+//		return;
+//	}
+
 	if(dvfs->isDutyCycle()==false)
 		return;
 
@@ -20,6 +49,7 @@ void NoximRouter::rxProcess()
 	for (int i = 0; i < DIRECTIONS + 1; i++) {
 	    ack_rx[i].write(0);
 	    current_level_rx[i] = 0;
+	    ready_to_rx[i] = 1;
 	}
 	reservation_table.clear();
 	routed_flits = 0;
@@ -36,13 +66,18 @@ void NoximRouter::rxProcess()
 	    // 1) there is an incoming request
 	    // 2) there is a free slot in the input buffer of direction i
 
-	    if ((req_rx[i].read() == 1 - current_level_rx[i])
-		&& !buffer[i].IsFull()) {
+	    if ((req_rx[i].read() == 1 - current_level_rx[i])){
+
+	    if(ready_to_rx[i] == 0)
+	    	logChangedState("ready_to_rx", i, 1);
+	    ready_to_rx[i] = 1;
+
+	    if(!buffer[i].IsFull()){
 		NoximFlit received_flit = flit_rx[i].read();
 
 		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
 		    cout << toString() << " Input[" << getDirStr(i)
-			<< "], Received flit: " << received_flit << endl;
+			<< "], Received flit: " << received_flit << ", buffer: " << buffer[i].Size() << endl;
 		}
 		// Store the incoming flit in the circular buffer
 		buffer[i].Push(received_flit);
@@ -56,6 +91,11 @@ void NoximRouter::rxProcess()
 
 		// Incoming flit
 		stats.power.Incoming();
+	    }
+	    }else{
+	    	 if(ready_to_rx[i] == 1)
+	    		 logChangedState("ready_to_rx", i, 0);
+	    	 ready_to_rx[i] = 0;
 	    }
 	    ack_rx[i].write(current_level_rx[i]);
 	}
@@ -73,6 +113,7 @@ void NoximRouter::txProcess()
 	for (int i = 0; i < DIRECTIONS + 1; i++) {
 	    req_tx[i].write(0);
 	    current_level_tx[i] = 0;
+	    ready_to_tx[i] = 1;
 	}
     } else {
     NoximRouteData routeDataArray[DIRECTIONS+1];
@@ -129,25 +170,39 @@ void NoximRouter::txProcess()
 
 		int o = reservation_table.getOutputPort(i);
 		if (o != NOT_RESERVED) {
-			// drop packet when output is off
+//			// drop packet when output is off
 			if (dvfs->isNeighborOff(o)) {
 				if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
 					cout << toString() << " Output[" << getDirStr(o)
 						<< "] is off, drop the flit!" << endl;
 				}
+
+				if(ready_to_tx[o] == 0)
+					logChangedState("ready_to_tx", o, 1);
+				ready_to_tx[o] = 1;
+
 				buffer[i].Pop();
 				//TODO what about case of resume
+//				current_level_tx[o] = 1 - current_level_tx[o];
+//				req_tx[o].write(current_level_tx[o]);
+
 				current_level_tx[o] = ack_tx[o];
+
 				if (flit.flit_type == FLIT_TYPE_TAIL)
 					reservation_table.release(o);
 				continue;
 			}
 
 			if (current_level_tx[o] == ack_tx[o].read()) {
+
+				if(ready_to_tx[o] == 0)
+					logChangedState("ready_to_tx", o, 1);
+				ready_to_tx[o] = 1;
+
 			if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-			    cout << toString() << "Input[" << getDirStr(i) <<
+			    cout << toString() << " Input[" << getDirStr(i) <<
 				"] forward to Output[" << getDirStr(o) << "], flit: "
-				<< flit << endl;
+				<< flit << ", buffer: " << buffer[i].Size() << endl;
 			}
 
 			flit_tx[o].write(flit);
@@ -191,6 +246,13 @@ void NoximRouter::txProcess()
 			    routed_flits++;
 			}
 		    }
+
+			else{
+				if(ready_to_tx[o] == 1)
+					logChangedState("ready_to_tx", o, 0);
+				ready_to_tx[o] = 0;
+			}
+
 		}
 	    }
 	}
@@ -863,7 +925,8 @@ void NoximRouter::switchProcess(){
     else if(!reset.read()){
     //	resetTxRx();
     	for (int i = 0; i < DIRECTIONS; i++) {
- //   		req_tx[i].write(ack_tx[i].read());
+    		req_tx[i].write(ack_tx[i].read());
+    		ack_rx[i].write(ack_tx[i].read());
     		current_level_tx[i] = ack_tx[i].read();
     	}
     	reservation_table.clear();
