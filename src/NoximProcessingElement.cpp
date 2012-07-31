@@ -87,17 +87,23 @@ void NoximProcessingElement::txProcess()
 
     NoximPacket packet;
 
-	if (canShot(packet)) {
-	    packet_queue.push(packet);
-	    transmittedAtPreviousCycle = true;
-	} else
-	    transmittedAtPreviousCycle = false;
+    if (dvfs->isDutyCycle() && !dvfs->off) {
+		if (canShot(packet)) {
+			packet_queue.push(packet);
+			transmittedAtPreviousCycle = true;
+		} else
+			transmittedAtPreviousCycle = false;
+	}
+    else
+		transmittedAtPreviousCycle = false;
+
 //	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
 //		cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
 //		     << ack_tx.read() << ", current_level_tx = " << current_level_tx
 //			 << ", flit_left = " << packet_queue.front().flit_left
 //			 << endl;
 	if (ack_tx.read() == current_level_tx) {
+		// state log
 		if(ready_to_tx == 0)
 			logChangedState("ready_to_tx", 1);
 		ready_to_tx = 1;

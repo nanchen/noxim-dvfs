@@ -563,8 +563,8 @@ char* NoximDVFSUnit::qTableString() const {
 
 // --------------------- divider----------------------------------------
 bool NoximDVFSUnit::isDutyCycle() {
-	if (off)
-		return false;
+//	if (off)
+//		return false;
 	if (division == 1)
 		return true;
 	if (divisionCount % division == 0) {
