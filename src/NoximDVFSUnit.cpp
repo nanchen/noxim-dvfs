@@ -306,7 +306,8 @@ void NoximDVFSUnit::printAllQTables() {
 }
 
 void NoximDVFSUnit::setQTableForANeighborOnFreqScaling(int nDir,
-		double queueTimeY, unsigned int newDivision, unsigned int prevDivision) {
+		double queueTimeY, unsigned int newDivision,
+		unsigned int prevDivision) {
 	const int MAX_ID = getMaxId();
 	// neighbor exists
 	if (nUnit[nDir]) {
@@ -315,8 +316,8 @@ void NoximDVFSUnit::setQTableForANeighborOnFreqScaling(int nDir,
 			if (getId() == i)
 				continue;
 			double preValue = getQValue(i, nDir);
-			double qValue = preValue + queueTimeY
-					* (newDivision - prevDivision);
+			double qValue = preValue
+					+ queueTimeY * (newDivision - prevDivision);
 			setQValue(i, nDir, qValue);
 		}
 	}
@@ -331,13 +332,13 @@ void NoximDVFSUnit::notifyAllNeighbors(int event) {
 					<< "\n \t\t\t\t\t|\n\t\t\t\t\t|\n\t\t\t\t\tV\n" << endl;
 			switch (event) {
 			case Q_NOTIFY_INFINITY:
-				n-> setQTableForANeighbor(getOppositDir(dir), Q_INFINITY);
+				n->setQTableForANeighbor(getOppositDir(dir), Q_INFINITY);
 				break;
 			case Q_NOTIFY_INIT:
-				n -> initQTableForANeighbor(getOppositDir(dir));
+				n->initQTableForANeighbor(getOppositDir(dir));
 				break;
 			case Q_NOTIFY_FREQ_SCALING:
-				n-> setQTableForANeighborOnFreqScaling(getOppositDir(dir),
+				n->setQTableForANeighborOnFreqScaling(getOppositDir(dir),
 						queueTime, division, preDivision);
 				break;
 			default:
@@ -400,8 +401,8 @@ void NoximDVFSUnit::updateQTable(int dirIn, NoximRouteData & routeData) {
 					continue;
 				}
 
-				const double delta = NoximGlobalParams::ETA * (getQueueTime()
-						+ ty - currentQValue);
+				const double delta = NoximGlobalParams::ETA
+						* (getQueueTime() + ty - currentQValue);
 				if (delta > 0)
 					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
 						cout << toString()
@@ -484,7 +485,6 @@ void NoximDVFSUnit::setDVFS(int id, NoximDVFSUnit* dvfs) {
 	a[id] = dvfs;
 }
 // -------END-------------DVFS unit array--------------------------------
-
 
 //----------------ID, coord and toString---------------------------------
 void NoximDVFSUnit::setNUnit(int dir, NoximDVFSUnit* neighbor) {
@@ -591,7 +591,8 @@ void NoximDVFSUnit::incrementDivisionCounter() {
 void NoximDVFSUnit::setDivision(unsigned int division) {
 	this->preDivision = this->division;
 	this->division = division;
-	this->notifyAllNeighbors(Q_NOTIFY_FREQ_SCALING);
+	if (this->preDivision != this->division)
+		this->notifyAllNeighbors(Q_NOTIFY_FREQ_SCALING);
 }
 
 void NoximDVFSUnit::setOff(bool off) {

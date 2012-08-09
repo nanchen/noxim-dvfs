@@ -931,20 +931,22 @@ void NoximRouter::resetTxRx(){
 	resetRx();
 }
 
-void NoximRouter::switchProcess(){
+void NoximRouter::switchProcess() {
 	cout << toString() << ", switchProcess off == " << off.read() << endl;
-//
-//	if (off.read()) {
-//
-//    }
-//    // resume
-//    else if(!reset.read()){
-// //   	resetTxRx();
-////    	for (int i = 0; i < DIRECTIONS; i++) {
-////    		req_tx[i].write(ack_tx[i].read());
-////   		ack_rx[i].write(ack_tx[i].read());
-////    		current_level_tx[i] = ack_tx[i].read();
-////    	}
-////    	reservation_table.clear();
-//    }
+
+	if (off.read()) {
+
+	} else {
+		// resume
+		dvfs->setDivision(1);
+//		if (!reset.read()) {
+		//   	resetTxRx();
+//    	for (int i = 0; i < DIRECTIONS; i++) {
+//    		req_tx[i].write(ack_tx[i].read());
+//   		ack_rx[i].write(ack_tx[i].read());
+//    		current_level_tx[i] = ack_tx[i].read();
+//    	}
+//    	reservation_table.clear();
+//		}
+	}
 }

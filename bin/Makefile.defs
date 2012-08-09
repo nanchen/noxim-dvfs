@@ -5,7 +5,7 @@
 # NOTE FOR NOXIM USERS: before running "make" you just have to modify
 # the following variable to point to your SystemC installation path
 #
-SYSTEMC = /home/nan/dev/systemc-2.2.0
+SYSTEMC = /home/nchen/dev/systemc-2.2.0
 #
 # That's all for you!!!
 
