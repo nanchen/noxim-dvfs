@@ -23,28 +23,24 @@ bool NoximDVFSSetting::load(const char *fname) {
 		if (line[0] != '\0') {
 			if (line[0] != '%' && line[0] != '#') {
 
-				int x, y, id, timeStamp;
+				int id, timeStamp;
 				char action[10];
 				unsigned int division = 0;
 
-				int params = sscanf(line, "%d,%d %d %s %d", &x, &y, &timeStamp,
+				int params = sscanf(line, "%d %d %s %d", &id, &timeStamp,
 						&action, &division);
-//				cout << "params = " << x << ", " << y << " @ " << timeStamp
+//				cout << "params = " << id << " @ " << timeStamp
 //						<< ": " << action << " division = " << division << endl;
-				if (params >= 2) {
+				if (params >= 3) {
 					DVFSAction dvfsAction = DVFSAction();
 
-					NoximCoord coord;
-					coord.x = x;
-					coord.y = y;
-
-					dvfsAction.coord = coord;
-					dvfsAction.id = xy2Id(x, y);
+					dvfsAction.coord = id2Coord(id);
+					dvfsAction.id = id;
 
 					dvfsAction.timeStamp = timeStamp;
 					dvfsAction.action = action;
 
-					if (params >= 5 && division > 0)
+					if (params == 4 && division > 0)
 						dvfsAction.division = division;
 
 					actions.push_back(dvfsAction);
@@ -55,7 +51,7 @@ bool NoximDVFSSetting::load(const char *fname) {
 //							<< endl;
 					DVFSAction dvfsInVecotr = unit->actions.back();
 					cout << "Parsed dvfs action: " << dvfsInVecotr.toString()
-											<< endl;
+							<< endl;
 				}
 			}
 		}
