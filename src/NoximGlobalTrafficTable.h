@@ -26,6 +26,7 @@ struct NoximCommunication {
     int t_on;			// Time (in cycles) at which activity begins
     int t_off;			// Time (in cycles) at which activity ends
     int t_period;		// Period after which activity starts again
+    int algorithm;
 };
 
 class NoximGlobalTrafficTable {
@@ -48,6 +49,8 @@ class NoximGlobalTrafficTable {
     // Returns the number of occurrences of soruce src_id in the traffic
     // table
     int occurrencesAsSource(const int src_id);
+
+    int getSpecifiedAlgorithm(const int srcId, const int dstId);
 
   private:
 

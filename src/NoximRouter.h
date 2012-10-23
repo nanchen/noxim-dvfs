@@ -12,6 +12,7 @@
 #define __NOXIMROUTER_H__
 
 #include <systemc.h>
+#include <map>
 #include "NoximMain.h"
 #include "NoximBuffer.h"
 #include "NoximStats.h"
@@ -68,7 +69,8 @@ SC_MODULE(NoximRouter)
 
     // dvfs
     NoximDVFSUnit* dvfs;
-    double flitReceivedTime[DIRECTIONS+1];
+//    double flitReceivedTime[DIRECTIONS+1];
+    map<unsigned long, double> flitReceivedTime;
     void setDVFS(NoximDVFSUnit* aDVFS);
     sc_in<bool> off;
     void switchProcess();

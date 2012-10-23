@@ -146,6 +146,7 @@ NoximFlit NoximProcessingElement::nextFlit()
     flit.sequence_no = packet.size - packet.flit_left;
     flit.hop_no = 0;
     flit.gId = getNextFlitGId();
+    flit.algorithm = packet.algorithm;
     //  flit.payload     = DEFAULT_PAYLOAD;
 
     if (packet.size == packet.flit_left)
@@ -223,8 +224,10 @@ bool NoximProcessingElement::canShot(NoximPacket & packet)
 	if (shot) {
 	    for (unsigned int i = 0; i < dst_prob.size(); i++) {
 		if (prob < dst_prob[i].second) {
-		    packet.make(local_id, dst_prob[i].first, now,
-				getRandomSize());
+			int dstId = dst_prob[i].first;
+			int algorithm = traffic_table->getSpecifiedAlgorithm(local_id, dstId);
+		    packet.make(local_id, dstId, now,
+				getRandomSize(), algorithm);
 		    break;
 		}
 	    }

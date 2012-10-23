@@ -33,11 +33,11 @@ bool NoximGlobalTrafficTable::load(const char *fname)
 	    if (line[0] != '%') {
 		int src, dst;	// Mandatory
 		float pir, por;
-		int t_on, t_off, t_period;
+		int t_on, t_off, t_period, algorithm;
 
 		int params =
-		    sscanf(line, "%d %d %f %f %d %d %d", &src, &dst, &pir,
-			   &por, &t_on, &t_off, &t_period);
+		    sscanf(line, "%d %d %f %f %d %d %d %d", &src, &dst, &pir,
+			   &por, &t_on, &t_off, &t_period, &algorithm);
 		if (params >= 2) {
 		    // Create a communication from the parameters read on the line
 		    NoximCommunication communication;
@@ -83,6 +83,14 @@ bool NoximGlobalTrafficTable::load(const char *fname)
 			    DEFAULT_RESET_TIME +
 			    NoximGlobalParams::simulation_time;
 
+		    // algorithm
+		    if (params >= 8 && algorithm >= 0) {
+				assert(algorithm != INVALID_ROUTING);
+				communication.algorithm = algorithm;
+			    //cout << "algorithm = " << algorithm << endl;
+		    } else
+				communication.algorithm = INVALID_ROUTING;
+
 		    // Add this communication to the vector of communications
 		    traffic_table.push_back(communication);
 		}
@@ -127,4 +135,16 @@ int NoximGlobalTrafficTable::occurrencesAsSource(const int src_id)
 	    count++;
 
     return count;
+}
+
+int NoximGlobalTrafficTable::getSpecifiedAlgorithm(const int srcId, const int dstId) {
+//	cout << "NoximGlobalTrafficTable::getSpecifiedAlgorithm: srcId = " << srcId << ", dstId = " << dstId << endl;
+	for (unsigned int i = 0; i < traffic_table.size(); i++) {
+		NoximCommunication comm = traffic_table[i];
+		if(comm.src == srcId && comm.dst == dstId){
+//			cout << "NoximGlobalTrafficTable::getSpecifiedAlgorithm: algorithm = " << comm.algorithm << endl;
+			return comm.algorithm;
+		}
+	}
+	return INVALID_ROUTING;
 }

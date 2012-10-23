@@ -383,7 +383,7 @@ void NoximDVFSUnit::updateQTable(int dirIn, NoximRouteData & routeData) {
 								<< ": setQTableForRegularFlitDelivery current q vlaue >= infinity, return!"
 								<< endl;
 					}
-					return;
+					continue;
 				}
 
 				int neighborDirOfMinQy = neighbor->getDirWithMinQValue(dstId);
@@ -403,7 +403,7 @@ void NoximDVFSUnit::updateQTable(int dirIn, NoximRouteData & routeData) {
 
 				const double delta = NoximGlobalParams::ETA
 						* (getQueueTime() + ty - currentQValue);
-				if (delta > 0)
+				if (delta != 0.0)
 					if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
 						cout << toString()
 								<< ": setQTableForRegularFlitDelivery: delta = "

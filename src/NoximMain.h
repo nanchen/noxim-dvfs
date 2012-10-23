@@ -171,19 +171,21 @@ struct NoximPacket {
     double timestamp;		// SC timestamp at packet generation
     int size;
     int flit_left;		// Number of remaining flits inside the packet
+    int algorithm;
 
     // Constructors
     NoximPacket() { }
     NoximPacket(const int s, const int d, const double ts, const int sz) {
-	make(s, d, ts, sz);
+	make(s, d, ts, sz, INVALID_ROUTING);
     }
 
-    void make(const int s, const int d, const double ts, const int sz) {
+    void make(const int s, const int d, const double ts, const int sz, const int algo) {
 	src_id = s;
 	dst_id = d;
 	timestamp = ts;
 	size = sz;
 	flit_left = sz;
+	algorithm = algo;
     }
 };
 
@@ -194,6 +196,7 @@ struct NoximRouteData {
     int dst_id;
     int dir_in;			// direction from which the packet comes from
     bool canUpdateQTable[DIRECTIONS+1];
+    int algorithm;
 };
 
 struct NoximChannelStatus {
@@ -232,6 +235,7 @@ struct NoximFlit {
     double timestamp;		// Unix timestamp at packet generation
     int hop_no;			// Current number of hops from source to destination
     unsigned long gId;
+    int algorithm;
 
     inline bool operator ==(const NoximFlit & flit) const {
 	return (flit.src_id == src_id && flit.dst_id == dst_id

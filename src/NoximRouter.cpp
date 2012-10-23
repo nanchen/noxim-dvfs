@@ -92,7 +92,8 @@ void NoximRouter::rxProcess()
 			buffer[i].Push(received_flit);
 
 			// ------------------------- DVFS --------------------------------------
-			flitReceivedTime[i] = sc_time_stamp().to_double() / 1000;
+//			flitReceivedTime[i] = sc_time_stamp().to_double() / 1000;
+			flitReceivedTime[received_flit.gId] = sc_time_stamp().to_double() / 1000;
 			// ---------------------------------------------------------------------
 
 			// Incoming flit
@@ -142,6 +143,12 @@ void NoximRouter::txProcess()
 		    route_data.src_id = flit.src_id;
 		    route_data.dst_id = flit.dst_id;
 		    route_data.dir_in = i;
+		    route_data.algorithm = flit.algorithm;
+
+			// init bool values
+			for (int dir4canUpdateQ = 0; dir4canUpdateQ < DIRECTIONS + 1; dir4canUpdateQ++)
+				route_data.canUpdateQTable[dir4canUpdateQ] = true;
+
 		    routeDataArray[i] = route_data;
 
 		    int o = route(route_data);
@@ -230,15 +237,15 @@ void NoximRouter::txProcess()
 			    reservation_table.release(o);
 
 			// DVFS  TODO is this condition right? (for any destination, set queue time)
-			double qTime = sc_time_stamp().to_double() / 1000
-						- flitReceivedTime[i];
+			double currentTime = sc_time_stamp().to_double() / 1000;
+			double qTime = currentTime - flitReceivedTime[flit.gId];
 			if (NoximGlobalParams::verbose_mode > VERBOSE_LOW)
-				cout << toString() << "flitReceivedTime = "
-					<< flitReceivedTime[i] << ", currentTime = "
-					<< sc_time_stamp().to_double() / 1000
-					<< ", qTime = " << qTime << endl;
+				cout << toString() << " flitReceivedTime[" << flit.gId << "] = "
+					<< flitReceivedTime[flit.gId] << ", currentTime = "
+					<< currentTime	<< ", qTime = " << qTime << endl;
 			dvfs->setQueueTime(qTime);
 			dvfs->updateQTable(i, routeDataArray[i]);
+			flitReceivedTime.erase(flit.gId);
 
 			// Update stats
 			if (o == DIRECTION_LOCAL) {
@@ -326,15 +333,19 @@ vector <int> NoximRouter::routingFunction(NoximRouteData & route_data)
     int dir_in = route_data.dir_in;
 
     vector<int> dirs;
-    switch (NoximGlobalParams::routing_algorithm) {
 
+    int algorithm = NoximGlobalParams::routing_algorithm;
+    if(route_data.algorithm != INVALID_ROUTING){
+ //   	cout << "flit-specified algorithm = " << route_data.algorithm << ", use it" << endl;
+    	algorithm = route_data.algorithm;
+    }
+
+    switch (algorithm) {
 	case ROUTING_Q:
 		dirs.push_back(dvfs->routingQ(route_data));
 		return dirs;
-
 	case ROUTING_NON_DET_Q:
 		return dvfs->nonDeterminsticRoutingQ(route_data);
-
     case ROUTING_XY:
 	return routingXY(position, dst_coord);
 
