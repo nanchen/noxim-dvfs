@@ -14,129 +14,124 @@ static bool inProcess = false;
 static int inProcessId = -1;
 
 void NoximProcessingElement::logChangedState(string name, bool currentState) {
-	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-		cout << toString() << " " << name << ": " << (1 - currentState)
-				<< " --> " << currentState << ", packet_queue size = "
-				<< packet_queue.size() << endl;
+    if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+        cout << toString() << " " << name << ": " << (1 - currentState)
+        << " --> " << currentState << ", packet_queue size = "
+            << packet_queue.size() << endl;
 }
 
-int NoximProcessingElement::randInt(int min, int max)
-{
+int NoximProcessingElement::randInt(int min, int max) {
     return min +
-	(int) ((double) (max - min + 1) * rand() / (RAND_MAX + 1.0));
+            (int) ((double) (max - min + 1) * rand() / (RAND_MAX + 1.0));
 }
 
-void NoximProcessingElement::rxProcess()
-{
-//
-//	if(dvfs->off){
-////		cout << toString() << " dvfs is off" << endl;
-//		if (req_rx.read() == 1 - current_level_rx) {
-//			 current_level_rx = 1 - current_level_rx;
-//		}
-//		ack_rx.write(current_level_rx);
-//		return;
-//	}
+void NoximProcessingElement::rxProcess() {
+    //
+    //	if(dvfs->off){
+    ////		cout << toString() << " dvfs is off" << endl;
+    //		if (req_rx.read() == 1 - current_level_rx) {
+    //			 current_level_rx = 1 - current_level_rx;
+    //		}
+    //		ack_rx.write(current_level_rx);
+    //		return;
+    //	}
 
-	if(dvfs->isDutyCycle()==false)
-		return;
+    if (dvfs->isDutyCycle() == false)
+        return;
 
     if (reset.read()) {
-	ack_rx.write(0);
-	current_level_rx = 0;
-	ready_to_rx = 1;
+        ack_rx.write(0);
+        current_level_rx = 0;
+        ready_to_rx = 1;
     } else {
-	if (req_rx.read() == 1 - current_level_rx) {
-		if(ready_to_rx == 0)
-			logChangedState("ready_to_rx", 1);
-		ready_to_rx = 1;
+        if (req_rx.read() == 1 - current_level_rx) {
+            if (ready_to_rx == 0)
+                logChangedState("ready_to_rx", 1);
+            ready_to_rx = 1;
 
-	    NoximFlit flit_tmp = flit_rx.read();
-	    if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-		cout << toString() << " RECEIVING " << flit_tmp << endl;
-	    }
-	    current_level_rx = 1 - current_level_rx;	// Negate the old value for Alternating Bit Protocol (ABP)
-	    if(flit_tmp.flit_type = FLIT_TYPE_TAIL){
-	    	inProcess = false;
-	    	eraseFromGIdSet(flit_tmp.gId);
-	    }
-	}else{
-		if(ready_to_rx == 1)
-			logChangedState("ready_to_rx", 0);
-		ready_to_rx = 0;
-	}
-	ack_rx.write(current_level_rx);
+            NoximFlit flit_tmp = flit_rx.read();
+            if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
+                cout << toString() << " RECEIVING " << flit_tmp << endl;
+            }
+            current_level_rx = 1 - current_level_rx; // Negate the old value for Alternating Bit Protocol (ABP)
+            if (flit_tmp.flit_type = FLIT_TYPE_TAIL) {
+                inProcess = false;
+                eraseFromGIdSet(flit_tmp.gId);
+            }
+        } else {
+            if (ready_to_rx == 1)
+                logChangedState("ready_to_rx", 0);
+            ready_to_rx = 0;
+        }
+        ack_rx.write(current_level_rx);
     }
 }
 
-void NoximProcessingElement::txProcess()
-{
-	if(dvfs->isDutyCycle()==false)
-		return;
+void NoximProcessingElement::txProcess() {
+    if (dvfs->isDutyCycle() == false)
+        return;
 
     if (reset.read()) {
-	req_tx.write(0);
-	current_level_tx = 0;
-	ready_to_tx = 1;
-	transmittedAtPreviousCycle = false;
+        req_tx.write(0);
+        current_level_tx = 0;
+        ready_to_tx = 1;
+        transmittedAtPreviousCycle = false;
     } else {
 
-    //only 1 packet could be sent simutaneously
-    if(NoximGlobalParams::concurrent_traffic == false && inProcess && inProcessId !=local_id)
-    	return;
+        //only 1 packet could be sent simutaneously
+        if (NoximGlobalParams::concurrent_traffic == false && inProcess && inProcessId != local_id)
+            return;
 
-    NoximPacket packet;
+        NoximPacket packet;
 
-    if (dvfs->isDutyCycle() && !dvfs->off) {
-		if (canShot(packet)) {
-			packet_queue.push(packet);
-			transmittedAtPreviousCycle = true;
-		} else
-			transmittedAtPreviousCycle = false;
-	}
-    else
-		transmittedAtPreviousCycle = false;
+        if (dvfs->isDutyCycle() && !dvfs->off) {
+            if (canShot(packet)) {
+                packet_queue.push(packet);
+                transmittedAtPreviousCycle = true;
+            } else
+                transmittedAtPreviousCycle = false;
+        } else
+            transmittedAtPreviousCycle = false;
 
-//	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-//		cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
-//		     << ack_tx.read() << ", current_level_tx = " << current_level_tx
-//			 << ", flit_left = " << packet_queue.front().flit_left
-//			 << endl;
-	if (ack_tx.read() == current_level_tx) {
-		// state log
-		if(ready_to_tx == 0)
-			logChangedState("ready_to_tx", 1);
-		ready_to_tx = 1;
+        //	if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+        //		cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
+        //		     << ack_tx.read() << ", current_level_tx = " << current_level_tx
+        //			 << ", flit_left = " << packet_queue.front().flit_left
+        //			 << endl;
+        if (ack_tx.read() == current_level_tx) {
+            // state log
+            if (ready_to_tx == 0)
+                logChangedState("ready_to_tx", 1);
+            ready_to_tx = 1;
 
-	    if (!packet_queue.empty()) {
-		NoximFlit flit = nextFlit();	// Generate a new flit
-		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
-		    cout << toString() << "SENDING " << flit << endl;
-		}
-		flit_tx->write(flit);	// Send the generated flit
-		current_level_tx = 1 - current_level_tx;	// Negate the old value for Alternating Bit Protocol (ABP)
-		req_tx.write(current_level_tx);
-		inProcess = true;
-		inProcessId = local_id;
-		insertToGIdSet(flit.gId);
-	    }
-	}else{
-		if(ready_to_tx == 1)
-			logChangedState("ready_to_tx", 0);
-		ready_to_tx = 0;
+            if (!packet_queue.empty()) {
+                NoximFlit flit = nextFlit(); // Generate a new flit
+                if (NoximGlobalParams::verbose_mode > VERBOSE_OFF) {
+                    cout << toString() << "SENDING " << flit << endl;
+                }
+                flit_tx->write(flit); // Send the generated flit
+                current_level_tx = 1 - current_level_tx; // Negate the old value for Alternating Bit Protocol (ABP)
+                req_tx.write(current_level_tx);
+                inProcess = true;
+                inProcessId = local_id;
+                insertToGIdSet(flit.gId);
+            }
+        } else {
+            if (ready_to_tx == 1)
+                logChangedState("ready_to_tx", 0);
+            ready_to_tx = 0;
 
-//		//log
-//		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
-//				cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
-//				     << ack_tx.read() << ", current_level_tx = " << current_level_tx
-//					 << ", flit_left = " << packet_queue.front().flit_left
-//					 << endl;
-	}
+            //		//log
+            //		if (NoximGlobalParams::verbose_mode > VERBOSE_OFF)
+            //				cout << toString() << "packet_queue size = " << packet_queue.size() << ", ack_tx = "
+            //				     << ack_tx.read() << ", current_level_tx = " << current_level_tx
+            //					 << ", flit_left = " << packet_queue.front().flit_left
+            //					 << endl;
+        }
     }
 }
 
-NoximFlit NoximProcessingElement::nextFlit()
-{
+NoximFlit NoximProcessingElement::nextFlit() {
     NoximFlit flit;
     NoximPacket packet = packet_queue.front();
 
@@ -150,95 +145,92 @@ NoximFlit NoximProcessingElement::nextFlit()
     //  flit.payload     = DEFAULT_PAYLOAD;
 
     if (packet.size == packet.flit_left)
-	flit.flit_type = FLIT_TYPE_HEAD;
+        flit.flit_type = FLIT_TYPE_HEAD;
     else if (packet.flit_left == 1)
-	flit.flit_type = FLIT_TYPE_TAIL;
+        flit.flit_type = FLIT_TYPE_TAIL;
     else
-	flit.flit_type = FLIT_TYPE_BODY;
+        flit.flit_type = FLIT_TYPE_BODY;
 
     packet_queue.front().flit_left--;
     if (packet_queue.front().flit_left == 0)
-	packet_queue.pop();
+        packet_queue.pop();
 
     return flit;
 }
 
-bool NoximProcessingElement::canShot(NoximPacket & packet)
-{
+bool NoximProcessingElement::canShot(NoximPacket & packet) {
     bool shot;
     double threshold;
 
-    if(NoximGlobalParams::traffic_distribution == TRAFFIC_PRE_DEFINED){
+    if (NoximGlobalParams::traffic_distribution == TRAFFIC_PRE_DEFINED) {
 
-    }
-    else if (NoximGlobalParams::traffic_distribution != TRAFFIC_TABLE_BASED) {
-	if (!transmittedAtPreviousCycle)
-	    threshold = NoximGlobalParams::packet_injection_rate;
-	else
-	    threshold = NoximGlobalParams::probability_of_retransmission;
+    } else if (NoximGlobalParams::traffic_distribution != TRAFFIC_TABLE_BASED) {
+        if (!transmittedAtPreviousCycle)
+            threshold = NoximGlobalParams::packet_injection_rate;
+        else
+            threshold = NoximGlobalParams::probability_of_retransmission;
 
-	shot = (((double) rand()) / RAND_MAX < threshold);
-	if (shot) {
-	    switch (NoximGlobalParams::traffic_distribution) {
-	    case TRAFFIC_RANDOM:
-		packet = trafficRandom();
-		break;
+        shot = (((double) rand()) / RAND_MAX < threshold);
+        if (shot) {
+            switch (NoximGlobalParams::traffic_distribution) {
+                case TRAFFIC_RANDOM:
+                    packet = trafficRandom();
+                    break;
 
-	    case TRAFFIC_TRANSPOSE1:
-		packet = trafficTranspose1();
-		break;
+                case TRAFFIC_TRANSPOSE1:
+                    packet = trafficTranspose1();
+                    break;
 
-	    case TRAFFIC_TRANSPOSE2:
-		packet = trafficTranspose2();
-		break;
+                case TRAFFIC_TRANSPOSE2:
+                    packet = trafficTranspose2();
+                    break;
 
-	    case TRAFFIC_BIT_REVERSAL:
-		packet = trafficBitReversal();
-		break;
+                case TRAFFIC_BIT_REVERSAL:
+                    packet = trafficBitReversal();
+                    break;
 
-	    case TRAFFIC_SHUFFLE:
-		packet = trafficShuffle();
-		break;
+                case TRAFFIC_SHUFFLE:
+                    packet = trafficShuffle();
+                    break;
 
-	    case TRAFFIC_BUTTERFLY:
-		packet = trafficButterfly();
-		break;
+                case TRAFFIC_BUTTERFLY:
+                    packet = trafficButterfly();
+                    break;
 
-	    default:
-		assert(false);
-	    }
-	}
-    } else {			// Table based communication traffic
-	if (never_transmit)
-	    return false;
+                default:
+                    assert(false);
+            }
+        }
+    } else { // Table based communication traffic
+        if (never_transmit)
+            return false;
 
-	double now = sc_time_stamp().to_double() / 1000;
-	bool use_pir = (transmittedAtPreviousCycle == false);
-	vector < pair < int, double > > dst_prob;
-	double threshold =
-	    traffic_table->getCumulativePirPor(local_id, (int) now,
-					       use_pir, dst_prob);
+        double now = sc_time_stamp().to_double() / 1000;
+        bool use_pir = (transmittedAtPreviousCycle == false);
+        vector < pair < int, double > > dst_prob;
+        double threshold =
+                traffic_table->getCumulativePirPor(local_id, (int) now,
+                use_pir, dst_prob);
 
-	double prob = (double) rand() / RAND_MAX;
-	shot = (prob < threshold);
-	if (shot) {
-	    for (unsigned int i = 0; i < dst_prob.size(); i++) {
-		if (prob < dst_prob[i].second) {
-			int dstId = dst_prob[i].first;
-			int algorithm = traffic_table->getSpecifiedAlgorithm(local_id, dstId);
-		    packet.make(local_id, dstId, now,
-				getRandomSize(), algorithm);
-		    break;
-		}
-	    }
-	}
+        double prob = (double) rand() / RAND_MAX;
+        shot = (prob < threshold);
+        if (shot) {
+            for (unsigned int i = 0; i < dst_prob.size(); i++) {
+                if (prob < dst_prob[i].second) {
+                    int dstId = dst_prob[i].first;
+                    int algorithm = traffic_table->getSpecifiedAlgorithm(local_id, dstId);
+                    packet.make(local_id, dstId, now,
+                            getRandomSize(), algorithm);
+                    break;
+                }
+            }
+        }
     }
 
     return shot;
 }
 
-NoximPacket NoximProcessingElement::trafficRandom()
-{
+NoximPacket NoximProcessingElement::trafficRandom() {
     NoximPacket p;
     p.src_id = local_id;
     double rnd = rand() / (double) RAND_MAX;
@@ -247,28 +239,28 @@ NoximPacket NoximProcessingElement::trafficRandom()
     //cout << "\n " << sc_time_stamp().to_double()/1000 << " PE " << local_id << " rnd = " << rnd << endl;
 
     int max_id =
-	(NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y) -
-	1;
+            (NoximGlobalParams::mesh_dim_x * NoximGlobalParams::mesh_dim_y) -
+            1;
 
     // Random destination distribution
     do {
-	p.dst_id = randInt(0, max_id);
+        p.dst_id = randInt(0, max_id);
 
-	// check for hotspot destination
-	for (uint i = 0; i < NoximGlobalParams::hotspots.size(); i++) {
-	    cout << sc_time_stamp().to_double()/1000 << " PE " << local_id << " Checking node " << NoximGlobalParams::hotspots[i].first << " with P = " << NoximGlobalParams::hotspots[i].second << endl;
+        // check for hotspot destination
+        for (uint i = 0; i < NoximGlobalParams::hotspots.size(); i++) {
+            cout << sc_time_stamp().to_double() / 1000 << " PE " << local_id << " Checking node " << NoximGlobalParams::hotspots[i].first << " with P = " << NoximGlobalParams::hotspots[i].second << endl;
 
-	    if (rnd >= range_start
-		&& rnd <
-		range_start + NoximGlobalParams::hotspots[i].second) {
-		if (local_id != NoximGlobalParams::hotspots[i].first) {
-		    //cout << sc_time_stamp().to_double()/1000 << " PE " << local_id <<" That is ! " << endl;
-		    p.dst_id = NoximGlobalParams::hotspots[i].first;
-		}
-		break;
-	    } else
-		range_start += NoximGlobalParams::hotspots[i].second;	// try next
-	}
+            if (rnd >= range_start
+                    && rnd <
+                    range_start + NoximGlobalParams::hotspots[i].second) {
+                if (local_id != NoximGlobalParams::hotspots[i].first) {
+                    //cout << sc_time_stamp().to_double()/1000 << " PE " << local_id <<" That is ! " << endl;
+                    p.dst_id = NoximGlobalParams::hotspots[i].first;
+                }
+                break;
+            } else
+                range_start += NoximGlobalParams::hotspots[i].second; // try next
+        }
     } while (p.dst_id == p.src_id);
 
     p.timestamp = sc_time_stamp().to_double() / 1000;
@@ -277,8 +269,7 @@ NoximPacket NoximProcessingElement::trafficRandom()
     return p;
 }
 
-NoximPacket NoximProcessingElement::trafficTranspose1()
-{
+NoximPacket NoximProcessingElement::trafficTranspose1() {
     NoximPacket p;
     p.src_id = local_id;
     NoximCoord src, dst;
@@ -297,8 +288,7 @@ NoximPacket NoximProcessingElement::trafficTranspose1()
     return p;
 }
 
-NoximPacket NoximProcessingElement::trafficTranspose2()
-{
+NoximPacket NoximProcessingElement::trafficTranspose2() {
     NoximPacket p;
     p.src_id = local_id;
     NoximCoord src, dst;
@@ -317,39 +307,35 @@ NoximPacket NoximProcessingElement::trafficTranspose2()
     return p;
 }
 
-void NoximProcessingElement::setBit(int &x, int w, int v)
-{
+void NoximProcessingElement::setBit(int &x, int w, int v) {
     int mask = 1 << w;
 
     if (v == 1)
-	x = x | mask;
+        x = x | mask;
     else if (v == 0)
-	x = x & ~mask;
+        x = x & ~mask;
     else
-	assert(false);
+        assert(false);
 }
 
-int NoximProcessingElement::getBit(int x, int w)
-{
+int NoximProcessingElement::getBit(int x, int w) {
     return (x >> w) & 1;
 }
 
-inline double NoximProcessingElement::log2ceil(double x)
-{
+inline double NoximProcessingElement::log2ceil(double x) {
     return ceil(log(x) / log(2.0));
 }
 
-NoximPacket NoximProcessingElement::trafficBitReversal()
-{
+NoximPacket NoximProcessingElement::trafficBitReversal() {
 
     int nbits =
-	(int)
-	log2ceil((double)
-		 (NoximGlobalParams::mesh_dim_x *
-		  NoximGlobalParams::mesh_dim_y));
+            (int)
+            log2ceil((double)
+            (NoximGlobalParams::mesh_dim_x *
+            NoximGlobalParams::mesh_dim_y));
     int dnode = 0;
     for (int i = 0; i < nbits; i++)
-	setBit(dnode, i, getBit(local_id, nbits - i - 1));
+        setBit(dnode, i, getBit(local_id, nbits - i - 1));
 
     NoximPacket p;
     p.src_id = local_id;
@@ -361,17 +347,16 @@ NoximPacket NoximProcessingElement::trafficBitReversal()
     return p;
 }
 
-NoximPacket NoximProcessingElement::trafficShuffle()
-{
+NoximPacket NoximProcessingElement::trafficShuffle() {
 
     int nbits =
-	(int)
-	log2ceil((double)
-		 (NoximGlobalParams::mesh_dim_x *
-		  NoximGlobalParams::mesh_dim_y));
+            (int)
+            log2ceil((double)
+            (NoximGlobalParams::mesh_dim_x *
+            NoximGlobalParams::mesh_dim_y));
     int dnode = 0;
     for (int i = 0; i < nbits - 1; i++)
-	setBit(dnode, i + 1, getBit(local_id, i));
+        setBit(dnode, i + 1, getBit(local_id, i));
     setBit(dnode, 0, getBit(local_id, nbits - 1));
 
     NoximPacket p;
@@ -384,17 +369,16 @@ NoximPacket NoximProcessingElement::trafficShuffle()
     return p;
 }
 
-NoximPacket NoximProcessingElement::trafficButterfly()
-{
+NoximPacket NoximProcessingElement::trafficButterfly() {
 
     int nbits =
-	(int)
-	log2ceil((double)
-		 (NoximGlobalParams::mesh_dim_x *
-		  NoximGlobalParams::mesh_dim_y));
+            (int)
+            log2ceil((double)
+            (NoximGlobalParams::mesh_dim_x *
+            NoximGlobalParams::mesh_dim_y));
     int dnode = 0;
     for (int i = 1; i < nbits - 1; i++)
-	setBit(dnode, i, getBit(local_id, i));
+        setBit(dnode, i, getBit(local_id, i));
     setBit(dnode, 0, getBit(local_id, nbits - 1));
     setBit(dnode, nbits - 1, getBit(local_id, 0));
 
@@ -409,27 +393,25 @@ NoximPacket NoximProcessingElement::trafficButterfly()
 }
 
 void NoximProcessingElement::fixRanges(const NoximCoord src,
-				       NoximCoord & dst)
-{
+        NoximCoord & dst) {
     // Fix ranges
     if (dst.x < 0)
-	dst.x = 0;
+        dst.x = 0;
     if (dst.y < 0)
-	dst.y = 0;
+        dst.y = 0;
     if (dst.x >= NoximGlobalParams::mesh_dim_x)
-	dst.x = NoximGlobalParams::mesh_dim_x - 1;
+        dst.x = NoximGlobalParams::mesh_dim_x - 1;
     if (dst.y >= NoximGlobalParams::mesh_dim_y)
-	dst.y = NoximGlobalParams::mesh_dim_y - 1;
+        dst.y = NoximGlobalParams::mesh_dim_y - 1;
 }
 
-int NoximProcessingElement::getRandomSize()
-{
+int NoximProcessingElement::getRandomSize() {
     return randInt(NoximGlobalParams::min_packet_size,
-		   NoximGlobalParams::max_packet_size);
+            NoximGlobalParams::max_packet_size);
 }
 
 char* NoximProcessingElement::toString() const {
-	char* ret = (char*) malloc(100 * sizeof(char));
-	sprintf(ret, "%s PE[%3d] ", currentTimeStr(), local_id);
-	return ret;
+    char* ret = (char*) malloc(100 * sizeof (char));
+    sprintf(ret, "%s PE[%3d] ", currentTimeStr(), local_id);
+    return ret;
 }

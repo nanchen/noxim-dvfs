@@ -198,37 +198,6 @@ int NoximDVFSUnit::getDirWithMinQValue(int dstId) {
 	return ret;
 }
 
-//int NoximDVFSUnit::getDirWithMinQValueFromDirs(int dstId, int excludedDir) {
-//	if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
-//		cout << toString() << "::getDirWithMinQValueFromDirs dstId = " << dstId
-//				<< "\n\tq table = \n" << qTableString() << endl;
-//
-//	if (dstId == getId()) {
-//		if (NoximGlobalParams::verbose_mode > VERBOSE_MEDIUM)
-//			cout << toString() << "::getDirWithMinQValueFromDirs dstId: "
-//					<< dstId << " = local ID, return LOCAL" << endl;
-//		return DIRECTION_LOCAL;
-//	}
-//	double min = Q_INFINITY;
-//	int ret = -1;
-//
-//	// search for min value
-//	for (int dir = 0; dir < DIRECTIONS; dir++) {
-//		if (dir == excludedDir)
-//			continue;
-//
-//		if (nUnit[dir] == NULL)
-//			continue;
-//
-//		double qValue = getQValue(dstId, dir);
-//		if (qValue < min) {
-//			min = qValue;
-//			ret = dir;
-//		}
-//	}
-//	return ret;
-//}
-
 // ============================== Common ==================================================
 double NoximDVFSUnit::getQValue(int dstId, int yDir) {
 	assert(dstId != getId());
@@ -442,28 +411,6 @@ void NoximDVFSUnit::setQueueTime(double qTime) {
 double NoximDVFSUnit::getQueueTime() {
 	return this->queueTime;
 }
-
-//void NoximDVFSUnit::updateQTableWithQueueTimeChange(int sendToDstId,
-//		int sendToDir) {
-//	if (this->queueTime == this->prevQueueTime)
-//		return;
-//
-//	const double delta = NoximGlobalParams::ETA * (queueTime - prevQueueTime);
-//	const int MAX_ID = getMaxId();
-//	for (int j = 0; j < DIRECTIONS; j++) {
-//		if (nUnit[j]) {
-//			for (int i = 0; i <= MAX_ID; i++) {
-//				if (getId() == i)
-//					continue;
-//				//				if(i == sendToDstId && j == sendToDir)
-//				//					continue;
-//				double preValue = getQValue(i, j);
-//				double qValue = preValue + delta;
-//				setQValue(i, j, qValue);
-//			}
-//		}
-//	}
-//}
 
 // ---------------------DVFS unit array--------------------------------
 static NoximDVFSUnit* a[MAX_STATIC_DIM * MAX_STATIC_DIM];
